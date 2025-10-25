@@ -1,0 +1,221 @@
+body {
+  font-family: Arial, sans-serif; 
+  margin: 2em; 
+}
+
+main {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #ddd;
+  padding: 8px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+th {
+  position: sticky;
+  top: -1px;
+}
+
+tr:nth-child(even){background-color: #f2f2f2;}
+
+tr:hover {
+  background-color: #ddd;
+  cursor: default;
+}
+
+th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #04AA6D;
+  color: white;
+}
+
+.select-items {
+  position: absolute;
+  background-color: #f2f2f2;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 99;
+}
+
+/*hide the items when the select box is closed:*/
+.select-hide {
+  display: none;
+}
+
+.select-items div:hover, .same-as-selected {
+  background-color: rgba(0, 0, .9, 0.1);
+}
+/*
+footer {
+  text-align: center;
+  padding: 12px;
+  background-color: #423e3c;
+  margin-top: 20px;
+  color: white;
+}
+*/
+label {
+  font-family: sans-serif;
+  font-size: 1rem;
+  padding-right: 10px;
+}
+
+select {
+  font-size: 1.0rem;
+  padding: 2px 5px;
+}
+
+h1 {
+  font-family: Arial, Helvetica, sans-serif;
+}
+/* header class for a banner or logo */
+header {
+  padding-top: 20px;
+  padding-right: 20px;
+  padding-bottom: 20px;
+  padding-left: 40px;
+  text-align: center;
+  background:#423e3c ;
+  color: white;
+  font-size: 15px;
+  margin-bottom: 20px;
+}
+
+.navlinks {
+  display: flex; 
+  justify-content: flex-start; 
+  gap: 2em;       
+  padding-left: 20px;  
+  background: #423e3c; 
+}
+
+.navlinks a {
+  text-decoration: none;
+  color: #bababa;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.navlinks a:hover {
+  color: white;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: auto;
+  display: block;
+}
+
+table {
+  display: table;
+  width: 99.9%;
+}
+
+.event-div {
+  outline: solid 1px #423e3c;
+  padding: 10px;
+  margin-bottom: 12px;
+  margin-top: 12px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2)
+}
+
+.drop-button-class {
+  max-width: revert;
+  margin-right: 0.1%;
+  margin-bottom: 0.5%;
+  width: 20%;
+}
+
+.Data-Div {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 80%;
+  float: left;
+}
+
+.Delete-Div {
+  display: inline-flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  min-width: 20%;
+  margin-bottom: 20px;
+}
+
+.Info-Div {
+  display: table;
+  width:100%;
+}
+
+.Data-Div p {
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+
+html, body {
+  height: 100%;
+  margin: 1em;
+  padding: 0;
+}
+
+body:not(.non-fixed) {
+  margin: 1em;
+  height: 98vh;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  
+  /*margin:2em;*/
+}
+
+main {
+  flex: 1; /* takes up remaining space */
+}
+
+footer {
+  text-align: center;
+  padding: 12px;
+  background-color: #423e3c;
+  color: white;
+  margin-bottom: 2em;
+  margin-top: 2em;
+}
+
+#delete-account {
+  width: 100%;
+}
+
+#delete-account button {
+  color:white;
+  background-color: #aa0404;
+  transition: 5ms;
+  border: none;
+  width: 12em;
+  font-weight: bold;
+}
+
+#delete-account button:hover {
+  background-color: #7e0606;
+}
+
+.rsvp-table-div {
+  display: block;
+  overflow: hidden;
+  overflow-y: scroll;
+  max-height: 225px;
+  margin-bottom: 20px;
+  scrollbar-gutter: stable;
+}

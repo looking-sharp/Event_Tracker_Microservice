@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Host a New Event</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/index.css') }}">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/form.css') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static',filename='favicon_io/apple-touch-icon.png')}}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static',filename='favicon_io/favicon-32x32.png')}}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static',filename='favicon_io/favicon-16x16.png')}}">
+  <link rel="manifest" href="{{ url_for('static',filename='favicon_io/site.webmanifest')}}">
+</head>
+<header>
+  <h1>Create New Event</h1>
+  <nav class="navlinks">
+    <a href="/userHome/{{ user_id }}">Cancel</a>
+    <a href='/'>Sign Out</a>
+  </nav>
+</header>
+<body class="non-fixed">
+  <form action="/createEvent/{{ user_id }}" method="POST">
+    <label for="eventName" title="The name of your event">Event Name:</label>
+    <input type="text" id="eventName" name="eventName" required>
+      
+    <label for="eventDate" title="the date of your event">Date:</label>
+    <input type="date" id="eventDate" name="eventDate" required>
+
+    <label for="startTime" title="Start time of your event">Start Time:</label>
+    <input type="time" id="startTime" name="startTime" required>
+
+    <label for="endTime" title="End time of your event">End Time:</label>
+    <input type="time" id="endTime" name="endTime" required>
+
+    <label for="location" title="Location of your event">Location:</label>
+    <input type="text" id="location" name="location" required>
+
+    <label for="description" title="Description of your event">Event Description:</label>
+    <textarea id="description" name="description" rows="4" required></textarea>
+
+    <label>Optional Settings</label>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="dropdown_arrow"></svg><br>
+
+    <div id="optional-questions" style="display: none;">
+      <div class="side_div">
+          <label for="age_restriction" title="Input minimum age allowed to attend your event, or leave blank" class="side_label">Age Restriction: </label>
+          <input type="number" class="side_text" id="age_restriction" name="age_restriction">
+      </div>
+
+      <label for="attendence_restriction" title="Input any restrictions that might restrict attendence (e.g. club members only) or leave blank">Affiliation Restriction</label>
+      <textarea id="attendence_restriction" name="attendence_restriction" id="attendence_restriction" rows="4"></textarea>
+
+      <p><b>These options will show up on the RSVP form</b><br>Atendees will have to affirm they meet the criteria before they can RSVP</p>
+    </div>
+
+    <button type="submit">Submit Event</button>
+  </form>
+  <footer>
+    Website by Thomas Sharp
+  </footer>
+  <script src="{{ url_for('static',filename='scripts/newEvent.js') }}"></script>
+</body>
+</html>
