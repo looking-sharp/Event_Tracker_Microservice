@@ -20,13 +20,13 @@
 </header>
 <body class="fixed-body">
   <form method="POST">
-    <input type="email" name="email" placeholder="Email" required>
+    <input type="text" name="username" placeholder="Username">
     <div class="icons">
       <svg class="fa-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"></svg>
     </div>
-    <input type="password" class="pass" name="password" placeholder="Password" reuqired>
+    <input type="password" class="pass" name="password" placeholder="Password">
     {% if login_failed %}
-      <span id="login_failed_error">Email or Password was incorrect<br></span>
+      <span id="login_failed_error">Username or Password was incorrect<br></span>
     {% endif %}
     <button type="submit">Log in</button>
   </form>

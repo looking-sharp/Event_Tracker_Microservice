@@ -1,6 +1,6 @@
 'use strict';
 
-const emailInput = document.getElementById("email")
+
 const usernameInput = document.getElementById("username");
 const cPasswordInput = document.getElementById("c_password");
 const passwordInput = document.getElementById("password");
@@ -15,13 +15,13 @@ let display = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     checkPassword();
-    checkEmail();
+    checkUsername();
     display = true;
 })
 
-emailInput.addEventListener("input", () => {
+usernameInput.addEventListener("input", () => {
     clearTimeout(typingTimer);
-    typingTimer = setTimeout(checkEmail, debounceDelay);
+    typingTimer = setTimeout(checkUsername, debounceDelay);
 });
 
 cPasswordInput.addEventListener("input", () => {
@@ -29,31 +29,31 @@ cPasswordInput.addEventListener("input", () => {
     typingTimer = setTimeout(checkPassword, debounceDelay);
 });
 
-function checkEmail() {
-  const email = emailInput.value.trim();
+function checkUsername() {
+  const username = usernameInput.value.trim();
 
-  if (email == null || email.length == 0) {
+  if (username == null || username.length == 0) {
     statusSpan.textContent = "";
     return;
   }
   
-  fetch(`/check_email?email=${encodeURIComponent(email)}`)
+  fetch(`/check_username?username=${encodeURIComponent(username)}`)
     .then(response => response.json())
     .then(data => {
       if (data.exists && display) {
-        statusSpan.textContent = "Email already taken";
+        statusSpan.textContent = "Username already taken";
         statusSpan.style.color = "red";
         usernameGood = false;
       } else if (display) {
-        statusSpan.textContent = "Email available";
+        statusSpan.textContent = "Username available";
         statusSpan.style.color = "green";
         usernameGood = true;
       }
     })
     .catch(err => {
       if(display) {
-        console.error("Error checking email:", err);
-        statusSpan.textContent = "Error checking email";
+        console.error("Error checking username:", err);
+        statusSpan.textContent = "Error checking username";
         statusSpan.style.color = "orange";
         usernameGood = false;
       }
@@ -67,31 +67,26 @@ function checkPassword() {
         passwordSpan.textContent= "";
         return;
     }
-    if (password.length < 6 && display) {
-      passwordSpan.innerHTML = "Passwords must be at least 6 chacters<br>"
-      passwordSpan.style.color = "red";
-      passwordGood = false;
-      return;
-    }
+
     if((password != c_password) && display) {
-      passwordSpan.innerHTML = "Passwords must match<br>"
-      passwordSpan.style.color = "red";
-      passwordGood = false;
+        passwordSpan.innerHTML = "Passwords must match<br>"
+        passwordSpan.style.color = "red";
+        passwordGood = false;
     }
     else if((password == c_password) && display) {
-      passwordSpan.innerHTML = "Passwords matching<br>"
-      passwordSpan.style.color = "green";
-      passwordGood = true;
+        passwordSpan.innerHTML = "Passwords matching<br>"
+        passwordSpan.style.color = "green";
+        passwordGood = true;
     }
 }
 
 function validateForm() {
     display = false;
     checkPassword();
-    checkEmail();
+    checkUsername();
     if(!passwordGood || !usernameGood)
     { 
-        alert("Email or Password not valid");
+        alert("Username or Password not valid");
         return false;
     }
     document.getElementById("signupForm").submit();
