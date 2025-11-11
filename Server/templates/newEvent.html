@@ -28,9 +28,17 @@
 
     <label for="startTime" title="Start time of your event">Start Time:</label>
     <input type="time" id="startTime" name="startTime" required>
-
+    
     <label for="endTime" title="End time of your event">End Time:</label>
     <input type="time" id="endTime" name="endTime" required>
+
+    <label for="timezone" title="Timezone">Timezone:</label>
+    <select id="timezone" name="timezone" required>
+      <option value="UTC">UTC</option>
+      <option value="America/New_York">Eastern Time</option>
+      <option value="America/Chicago">Central Time</option>
+      <option value="America/Los_Angeles">Pacific Time</option>
+    </select>
 
     <label for="location" title="Location of your event">Location:</label>
     <input type="text" id="location" name="location" required>
