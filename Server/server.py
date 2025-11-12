@@ -2,13 +2,13 @@ from dotenv import load_dotenv # type: ignore
 from flask import Flask, request, redirect, url_for, render_template, jsonify # type: ignore
 from datetime import datetime, time, date
 from flask_cors import CORS
-from database import init_db, get_db, add_to_db
+from database import init_db, get_db, add_to_db, event_id_exists
 from models import EventLog
 from sqlalchemy import select
 from zoneinfo import ZoneInfo
 import requests
 import os
-import uuid
+import secrets
 
 app = Flask(__name__)
 
@@ -16,6 +16,10 @@ load_dotenv()
 EMAIL_URL = os.getenv("EMAIL_MICROSERVICE_URL")
 USER_URL = os.getenv("USER_AUTH_MICROSERVICE_URL")
 TOKEN = ""
+
+def create_event_id(length: int = 12) -> str:
+    """Create short for URL"""
+    return secrets.token_urlsafe(length)[:length]
 
 allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:5000").split(",")
 CORS(app, resources={
@@ -27,7 +31,7 @@ CORS(app, resources={
 })
 
 def _get_user_validity() -> bool:
-    if TOKEN is "":
+    if TOKEN == "":
         return False
     headers = { "Authorization": f"Bearer {TOKEN}" }
     response = requests.get(f"{USER_URL}/auth/verify", headers=headers)
@@ -38,10 +42,6 @@ def _get_user_validity() -> bool:
 def _parse_date(date_str: str) -> datetime.date:
     """Convert 'YYYY-MM-DD' string to date object."""
     return datetime.strptime(date_str, "%Y-%m-%d").date()
-
-def _parse_time(time_str: str) -> time:
-    """Convert 'HH:MM' string to time object."""
-    return datetime.strptime(time_str, "%H:%M").time()
 
 def _convert_to_utc(event_date_str, time_str, tz_str):
     """
@@ -136,9 +136,19 @@ def login():
         
     return render_template("login.html")
 
+@app.route("/signout")
+def signout():
+    global TOKEN
+    if TOKEN != "":
+        headers = { "Authorization": f"Bearer {TOKEN}" }
+        response = requests.post(f"{USER_URL}/auth/logout", headers=headers)
+        print(response.json())
+        TOKEN = ""
+    return redirect(url_for("index"))
+
 @app.route("/userHome/<user_id>")
 def user_page(user_id):
-    if TOKEN is "":
+    if TOKEN == "":
         return redirect(url_for("index"))
     headers = { "Authorization": f"Bearer {TOKEN}" }
     response = requests.get(f"{USER_URL}/auth/verify", headers=headers)
@@ -174,12 +184,14 @@ def create_event(user_id):
 
     if request.method == "POST":
         # Required fields
+        _id = create_event_id(12)
+        while event_id_exists(_id):
+            _id= create_event_id(12)
+
         event_name = request.form["eventName"]
         event_date = _parse_date(request.form["eventDate"])
         event_location = request.form["location"]
         event_description = request.form["description"]
-        start_time = _parse_time(request.form["startTime"])
-        end_time = _parse_time(request.form["endTime"])
         tz_info = request.form["timezone"]
 
         # Optional fields
@@ -189,6 +201,7 @@ def create_event(user_id):
 
         # Create EventLog instance
         new_event = EventLog(
+            id=_id,
             user_id=user_id,
             event_name=event_name,
             event_date=event_date,
@@ -218,6 +231,7 @@ def delete_event_logic(event_id, user_id):
             event = db.query(EventLog).filter(EventLog.id == event_id,EventLog.user_id == user_id).first()
             if not event:
                 return "event not found", 400
+            print(f"deleting event: {event.id} - {event.event_name}")
             db.delete(event)
             db.commit()
             return "event deleted", 200
@@ -231,6 +245,22 @@ def delete_event(event_id, user_id):
     delete_event_logic(event_id, user_id)
     return redirect(url_for("user_page", user_id=user_id))
 
+@app.route("/delete_account/<user_id>", methods=["POST"])
+def delete_account(user_id):
+    if not _get_user_validity():
+        return redirect(url_for("index"))
+
+    #email_handeler.send_account_delete_email(user["email"])
+    with get_db() as db:
+        events = db.query(EventLog).filter_by(user_id=user_id).all()
+        for event in events:
+            delete_event_logic(event.id, user_id)
+        
+        headers = { "Authorization": f"Bearer {TOKEN}" }
+        response = requests.post(f"{USER_URL}/auth/delete-account", headers=headers)
+        print(response.json())
+
+        return redirect(url_for("sign_up"))
 
 @app.route("/updateEvent/<user_id>/<event_id>", methods=["GET", "POST"])
 def update_event(user_id, event_id):
@@ -280,7 +310,6 @@ def update_event(user_id, event_id):
     # GET request: show prefilled form
     return render_template("updateEvent.html", user_id=user_id, event_id=event_id)
 
-
 @app.route("/getEvent")
 def get_event():
     print("got request")
@@ -296,6 +325,71 @@ def get_event():
             return jsonify(data)
         return jsonify({"exists":False, "event": None})    
     return jsonify({"exists":False, "event": None})
+
+@app.route("/rsvp/<event_id>", methods=["GET", "POST"])
+def rsvp(event_id):
+    with get_db() as db:
+        e = db.query(EventLog).filter_by(id=event_id).first()
+        if not e:
+            return "Event not found", 404
+        e.start_dt = datetime.combine(e.event_date, e.start_time).replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo(e.tz_str))
+        e.end_dt   = datetime.combine(e.event_date, e.end_time).replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo(e.tz_str))
+        if request.method == "POST":
+            email = request.form["email"]
+            first_name = request.form["firstName"]
+            last_name = request.form["lastName"]
+            rsvp_entry = {
+                "email": email,
+                "firstName": first_name,
+                "lastName": last_name,
+            }
+            e.rsvps.append(rsvp_entry)
+            db.commit()
+            return "Thanks for RSVPing!"
+        return render_template("rsvpForm.html", event=e)
+
+
+@app.route("/email", methods=["GET", "POST"])
+def email_attendees():
+    if TOKEN == "":
+        return redirect(url_for("index"))
+    headers = { "Authorization": f"Bearer {TOKEN}" }
+    response = requests.get(f"{USER_URL}/auth/verify", headers=headers)
+    
+    if(response.status_code != 200):
+        return redirect(url_for("login"))
+    
+    data = response.json();
+    
+    user_id = request.args.get("uid")
+    if request.method == "POST":
+        # Get form data
+        
+        subject = request.form["subject"]
+        body = request.form["body"]
+        recipients = request.form.getlist("recipients")
+        try:
+            additional_email = request.form["includeYourself"]
+            recipients.append(data.email)
+        except Exception as e:
+            print("include yourself not provided")
+        finally:
+            with get_db() as db:
+                event_id = request.args.get("eventid")
+                event = db.query(EventLog).filter_by(id=event_id, user_id=user_id).first()
+                if(event == None):
+                    return redirect(url_for("index"))
+            print(event)
+            # Implement send email here
+        return "Email submitted!"
+    else:
+        event_id = request.args.get("eventid")
+        with get_db() as db:
+            event = db.query(EventLog).filter_by(id=event_id, user_id=user_id).first()
+            if(event == None):
+                return redirect(url_for("index"))
+            return render_template("emailAttendees.html", user_id=user_id, event_id=event_id, event=event)
+
 
 
 if __name__ == "__main__":

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>RSVP for {{ event.eventName }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/index.css') }}">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/form.css') }}">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/rsvp.css') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static',filename='favicon_io/apple-touch-icon.png')}}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static',filename='favicon_io/favicon-32x32.png')}}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static',filename='favicon_io/favicon-16x16.png')}}">
+  <link rel="manifest" href="{{ url_for('static',filename='favicon_io/site.webmanifest')}}">
+</head>
+<header>
+  <h1>RSVP for {{ event.event_name }}</h1>
+</header>
+<body class="fixed-body">
+  <div class="event-details-container">
+    <div class="event-details">
+      <h3> For: {{ event["event_name"] }} </h3>
+      <p>
+        From {{ event["start_dt"].strftime("%I:%M %p") }}
+        to {{ event["end_dt"].strftime("%I:%M %p") }}
+        on {{ event["event_date"].strftime("%B %d, %Y") }}
+        ({{ "PST" if event["tz_str"] == "America/Los_Angeles" else "EST" if event["tz_str"] == "America/New_York" else "CST" if event["tz_str"] == "America/Chicago" else "UTC"}})
+      </p>
+      <p> {{ event["event_location"] }} </p>
+      <p> {{ event["event_description"] }} </p>
+    </div>
+    {% if event["public"] %}
+    <label>Attendee List</label>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="dropdown_arrow"></svg><br>
+    <div class="attendees" id="attendees_table">
+      {% if event["rsvps"]|length != 0 %}
+      <table>
+        <tr>
+          <th>Who's Coming:</th>
+        </tr>
+        {% for person in event["rsvps"] %}
+        <tr>
+          <td>{{ person["firstName"] }} {{ person["lastName"] }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  <form method="POST">
+    <label>Email:</label>
+    <input type="email" name="email" required><br>
+
+    <label>First Name:</label>
+    <input type="text" name="firstName" required><br>
+
+    <label>Last Name:</label>
+    <input type="text" name="lastName" required><br>
+        
+    {% if event["age_restriction"] %}
+    <div class="opt-div">
+      <!-- show age restriction -->
+      <label for="age">I affirm I am at least {{ event["age_restriction"] }} years old</label>
+      <input type="checkbox" class="age" id="age" required>
+    </div>
+    {% endif %}
+
+    {% if event["attendence_restriction"] %}
+    <div class="opt-div">
+      <!-- show age restriction -->
+      <label for="aff">I affirm that I meet the criteria: {{ event["attendence_restriction"] }}</label>
+      <input type="checkbox" class="aff" id="aff" required>
+    </div>
+    {% endif %}
+
+    <button type="submit">Submit RSVP</button>
+  </form>
+  <footer>
+    Website by Thomas Sharp
+  </footer>
+  <script src="{{ url_for('static',filename='scripts/rsvp.js') }}"></script>
+</body>
+</html>

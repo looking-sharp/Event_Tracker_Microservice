@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="UTF-8">
+  <title>Email Participants</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/index.css') }}">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/form.css') }}">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/email.css') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static',filename='favicon_io/apple-touch-icon.png')}}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static',filename='favicon_io/favicon-32x32.png')}}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static',filename='favicon_io/favicon-16x16.png')}}">
+  <link rel="manifest" href="{{ url_for('static',filename='favicon_io/site.webmanifest')}}">
+</head>
+<header>
+  <h1>Email Participants for {{ event["eventName"] }}</h1>
+  <nav class="navlinks">
+    <a href="/userHome/{{ user_id }}">Cancel</a>
+    <a href='/'>Sign Out</a>
+  </nav>
+</header>
+<body class="non-fixed">
+  <form id="emailForm" method="POST" action="/email?uid={{ user_id }}&eventid={{ event_id }}">
+    
+    <label for="subject" title="The subject of your email">Subject:</label>
+    <input type="text" id="subject" name="subject" required>
+
+    <label for="body">Body:</label>
+    <input type="hidden" name="body" id="emailBody">
+    <div id="editor-container">
+      <div id="editor"></div>
+      <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+      <script>
+        var quill = new Quill('#editor', {
+          theme: 'snow',
+          modules: {
+            toolbar: [
+              [{ 'header': [1, 2, false] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+              ['link', 'image'],
+              ['clean']
+            ]
+          }
+        });
+      </script>
+    </div>
+    
+    <fieldset>
+      <legend>Select Participants:</legend>
+      <button type="button" id="selectAll">Select All</button>
+      <button type="button" id="unselectAll">Unselect All</button>
+      <input type="text" placeholder="Search" id="search">
+      <br><br>
+      <div class="scrollable" id="participantsList">
+      {% for person in event["rsvps"] %}
+        <label title="{{ person['firstName'] }} {{ person['lastName'] }} ({{ person['email'] }})">
+          <input type="checkbox" name="recipients" value="{{ person['email'] }}" checked>
+          {{ person['firstName'] }} {{ person['lastName'] }} ({{ person['email'] }})
+        </label><br>
+      {% endfor %}
+      </div>
+    </fieldset>
+
+    <label for="includeYourself">Recieve Copy of Email
+    <input type="checkbox" name="includeYourself" id="includeYourself"></label>
+      
+    <button type="submit">Send Email</button>
+  </form>
+  <footer>
+    Website by Thomas Sharp
+  </footer>
+  <script src="{{ url_for('static',filename='scripts/email.js') }}"></script>
+</body>

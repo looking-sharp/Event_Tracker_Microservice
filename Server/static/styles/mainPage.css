@@ -20,18 +20,18 @@
 }
 
 #mainPage-info p {
-    text-align: center;
+  text-align: center;
 }
 
 #mainPage-info b {
-    font-size: x-large;
+  font-size: x-large;
 }
 
 #mainPage-info ul {
-    display: table;
-    margin:auto;
+  display: table;
+  margin:auto;
 }
 
 .drop-button {
-    font-size: large;
+  font-size: large;
 }

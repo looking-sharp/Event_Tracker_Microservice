@@ -1,0 +1,56 @@
+.event-details-container {
+    display: inline-grid;
+    width: 600px;
+    margin: auto;
+}
+
+.event-details {
+    padding: 10px 0px;
+    box-sizing: border-box;
+}
+
+.attendees {
+    display: block;
+    overflow: hidden;
+    overflow-y: auto;
+    max-height: 0px;
+    margin-bottom: 20px;
+    transition: max-height 0.2s ease;
+}
+
+.active-attendee-list{
+    max-height: 193px;
+}
+
+.attendees table {
+    width: 100%;
+    table-layout: fixed;  /* prevents width expansion */
+}
+
+.attendees td, .attendees th {
+    padding: 6px 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#dropdown_arrow {
+    left: 100px;
+}
+
+.opt-div {
+    display: flex;
+    flex-direction: column-reverse;
+    margin-top: 20px;
+    justify-content: center;
+    width: 587.5px;
+}
+
+.opt-div label {
+    width: 80%;
+    margin: 0;
+}
+
+.opt-div input {
+    align-self: flex-end;
+}

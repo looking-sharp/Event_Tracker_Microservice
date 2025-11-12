@@ -15,13 +15,13 @@
   <h1>Create New Event</h1>
   <nav class="navlinks">
     <a href="/userHome/{{ user_id }}">Cancel</a>
-    <a href='/'>Sign Out</a>
+    <a href='/signout'>Sign Out</a>
   </nav>
 </header>
 <body class="non-fixed">
   <form action="/createEvent/{{ user_id }}" method="POST">
     <label for="eventName" title="The name of your event">Event Name:</label>
-    <input type="text" id="eventName" name="eventName" required>
+    <input type="text" id="eventName" name="eventName" maxlength="255" required>
       
     <label for="eventDate" title="the date of your event">Date:</label>
     <input type="date" id="eventDate" name="eventDate" required>
@@ -41,7 +41,7 @@
     </select>
 
     <label for="location" title="Location of your event">Location:</label>
-    <input type="text" id="location" name="location" required>
+    <input type="text" id="location" name="location" maxlength="255" required>
 
     <label for="description" title="Description of your event">Event Description:</label>
     <textarea id="description" name="description" rows="4" required></textarea>

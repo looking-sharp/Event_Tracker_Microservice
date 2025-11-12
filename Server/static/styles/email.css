@@ -1,0 +1,59 @@
+#editor {
+    height: 200px;
+    overflow-y: auto;
+}
+
+#editor-container {
+    width: 600px;
+    margin:auto;
+    margin-bottom: 10px;
+    margin-top: 3px;
+}
+
+input, textarea {
+    width:97%;
+}
+
+input[type="checkbox"] {
+    margin-left: 580px;
+}
+
+fieldset label {
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.scrollable {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.scrollable label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.scrollable input[type="checkbox"] {
+    position: relative;
+    margin: 0;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+}
+
+fieldset input[type="text"] {
+    width:auto;
+    padding:9px;
+}
+
+.ql-editor p {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    unicode-bidi: isolate;
+}

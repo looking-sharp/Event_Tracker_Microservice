@@ -15,7 +15,7 @@
   <h1>Welcome {{username}}</h1>
   <nav class="navlinks">
     <a href="/createEvent/{{ user_id }}">Create a New Event</a>
-    <a href='/'>Sign Out</a>
+    <a href='/signout'>Sign Out</a>
   </nav>
 </header>
 <body>
@@ -33,10 +33,11 @@
           From {{ event["start_dt"].strftime("%I:%M %p") }}
           to {{ event["end_dt"].strftime("%I:%M %p") }}
           on {{ event["event_date"].strftime("%B %d, %Y") }}
-          ({{ event["tz_str"] if event["tz_str"] else "Local Time" }})
+          ({{ "PST" if event["tz_str"] == "America/Los_Angeles" else "EST" if event["tz_str"] == "America/New_York" else "CST" if event["tz_str"] == "America/Chicago" else "UTC"}})
         </p>
         <p> {{ event["event_location"] }} </p>
         <p> {{ event["event_description"] }} </p>
+        <p> RSVP at: <a href='{{url}}rsvp/{{event["id"]}}''>{{url}}rsvp/{{event["id"]}}</a></p>
       </div>
       <div class="Delete-Div">
         <form action='{{ url_for("delete_event", event_id=event["id"], user_id=user_id) }}' method="POST" class="drop-button-class">
@@ -49,6 +50,11 @@
             Update Event
           </button>
         </form>
+        {% if event["rsvps"]|length != 0 %}
+        <a class="contact-button" href="{{ url_for('email_attendees', uid=user_id, eventid=event['id']) }}">
+          Contact Responders
+        </a>
+        {% endif %}
       </div>
     </div>
     <div class="rsvp-table-div">
@@ -72,11 +78,14 @@
         </tbody>
       </table>
       {% else %}
-      <b>No one has RSVP'd for this event yet <!--<br> Share the link above to recieve RSVP's--></b>
+      <b>No one has RSVP'd for this event yet <br>Share the link above to recieve RSVP's</b>
       {% endif %}
     </div>
   </div>
   {% endfor %}
+  <form action='{{ url_for("delete_account", user_id=user_id) }}' method="POST" id="delete-account">
+    <button type="submit" onclick="return confirm('Are you sure you want to delete your account? ALL your events will also be deleted');">Delete Account</button>
+  </form>
   <script src="{{ url_for('static',filename='scripts/debug.js') }}"></script>
   <script src="{{ url_for('static',filename='scripts/userHome.js') }}"></script>
 </body>

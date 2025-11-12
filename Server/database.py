@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from contextlib import contextmanager
 import os
 
-from models import Base  # Import from models.py
+from models import Base, EventLog  # Import from models.py
 
 # ------------------------
 #   ENV + ENGINE SETUP
@@ -74,3 +74,15 @@ def add_to_db(session, instance, return_bool=False):
         if return_bool:
             return False
         raise e
+
+
+def find_in_db(session: Session, model, **filters):
+    """
+    Generic function to find a record in any table using keyword filters.
+    Example: find_in_db(db, User, email="user@example.com")
+    """
+    return session.query(model).filter_by(**filters).first()
+
+def event_id_exists(_id: str) -> bool:
+    with get_db() as db:
+        return find_in_db(db, EventLog, id=_id) is not None

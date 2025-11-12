@@ -1,6 +1,7 @@
 #region imports
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, Time, JSON, Date
 from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.mutable import MutableList
 from datetime import datetime, timezone
 #endregion 
 
@@ -14,7 +15,7 @@ utcnow = lambda: datetime.now(timezone.utc)
 
 class EventLog(Base):
     __tablename__ = "event_logs"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(12), primary_key=True)
     user_id = Column(Text, nullable=False)
     event_name = Column(String(255), nullable=False)
     event_date = Column(Date, nullable=False)
@@ -25,7 +26,7 @@ class EventLog(Base):
     public = Column(Boolean, default=True)
     event_location = Column(String(255))
     event_description = Column(Text)
-    rsvps = Column(JSON, default=list)
+    rsvps = Column(MutableList.as_mutable(JSON), default=list)
     age_restriction = Column(Integer, default=None)
     attendence_restriction = Column(Text, default=None)
     
