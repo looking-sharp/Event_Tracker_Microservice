@@ -1,6 +1,8 @@
 [submodule "User_Authentication_Microservice"]
 	path = User_Authentication_Microservice
-	url = https://github.com/looking-sharp/User_Authentication_Microservice/tree/Tom-UIBuild
+	url = https://github.com/looking-sharp/User_Authentication_Microservice
+	branch = main
 [submodule "Email_Microservice"]
 	path = Email_Microservice
 	url = https://github.com/looking-sharp/Email_Microservice
+	branch = main
