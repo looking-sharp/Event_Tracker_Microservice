@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("location").value = data.event.event_location;
             document.getElementById("description").value = data.event.event_description;
             document.getElementById("timezone").value = data.event.tz_str;
+            document.getElementById("public").checked = data.event.public;
             
             if(data.event.hasOwnProperty("age_restriction")) {
                 document.getElementById("age_restriction").value = Number(data.event.age_restriction);
