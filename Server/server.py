@@ -4,7 +4,7 @@ from flask.wrappers import Response as FlaskResponse
 from datetime import datetime, time, date
 from flask_cors import CORS
 from database import init_db, get_db, add_to_db, event_id_exists
-from email_handler import contact_attendees
+from email_handler import contact_attendees, send_cancel_email
 from models import EventLog
 from sqlalchemy import select
 from zoneinfo import ZoneInfo
@@ -254,19 +254,23 @@ def delete_event_logic(event_id, user_id):
             event = db.query(EventLog).filter(EventLog.id == event_id,EventLog.user_id == user_id).first()
             if not event:
                 return "event not found", 400
+            responders = [r["email"] for r in event.rsvps]
+            if responders:
+                send_cancel_email(recipients=responders, event=_serialize_event(event))
             print(f"deleting event: {event.id} - {event.event_name}")
             db.delete(event)
             db.commit()
             return "event deleted", 200
     except Exception as e:
+        print("ERROR:" + str(e))
         return "deletion failed", 400
 
 @app.route("/delete_event/<event_id>/<user_id>", methods=["POST"])
 def delete_event(event_id, user_id):
     if not _get_user_validity():
         return redirect(url_for("index"))
-    delete_event_logic(event_id, user_id)
-    return redirect(url_for("user_page", user_id=user_id))
+    message, status = delete_event_logic(event_id, user_id)
+    return render_template("resultInfo.html", Title="Deleted Event", Header="Delete Event Results", Status=status, Details=message, user_id=user_id)
 
 @app.route("/delete_account/<user_id>", methods=["POST"])
 def delete_account(user_id):
@@ -402,7 +406,7 @@ def email_attendees():
             if(event == None):
                 print("Event not found")
                 return redirect(url_for("index"))
-        response = contact_attendees(recipients, subject, event.event_name, body, True)
+        response = contact_attendees(recipients=recipients, subject_line=subject, body=body, is_html=True, event=_serialize_event(event))
         status, message = _parse_response_data(response)
         return render_template("resultInfo.html", Title="Send Email", Header="Send Email Results", Status=status, Details=message, user_id=user_id)
     else:

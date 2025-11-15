@@ -37,10 +37,20 @@ def send_email(recipients: list[str], subject_line: str, body: str, is_html: boo
         details = str(e)
         return make_response(jsonify({"message": details}), status)
 
-def contact_attendees(recipients: list[str], subject_line: str, event_name: str, body: str, is_html: bool):
+def contact_attendees(recipients: list[str], subject_line: str, body: str, is_html: bool, event):
     if not is_html:
         body = _convert_to_html(body)
         is_html = True
-    related_to = f"<p><b>This message is related to {event_name}</b></p>"
+    related_to = f"<p><b>This message is regarding: {event['event_name']} on {event['event_date']}</b></p>"
     body = related_to + body
     return send_email(recipients, subject_line, body, is_html)
+
+def send_cancel_email(recipients: list[str], event):
+    subject_line = "An Event You RSVP'd for was Canceled"
+    body = f"""
+        <p><b>This message is regarding: {event['event_name']} on {event['event_date']}</b></p>
+        <p>This is an automated email to inform you that an event you RSVP'd to was canceled. </p>
+        <p>For any other questions, you can reach out to the event coordinator</p>
+        <br>
+    """
+    return send_email(recipients, subject_line, body, True)
