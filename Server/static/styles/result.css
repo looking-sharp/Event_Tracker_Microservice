@@ -1,0 +1,29 @@
+h1 {
+    text-align: center;
+}
+
+p {
+    text-align: center;
+}
+.status-ok {
+    color: green;
+    font-weight: bold;
+}
+
+.status-redirect {
+    color: blue;
+}
+
+.status-client-error {
+    color: orange;
+    font-weight: bold;
+}
+
+.status-server-error {
+    color: red;
+    font-weight: bold;
+}
+
+.status-unknown {
+    color: gray;
+}

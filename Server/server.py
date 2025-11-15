@@ -1,13 +1,16 @@
 from dotenv import load_dotenv # type: ignore
 from flask import Flask, request, redirect, url_for, render_template, jsonify # type: ignore
+from flask.wrappers import Response as FlaskResponse
 from datetime import datetime, time, date
 from flask_cors import CORS
 from database import init_db, get_db, add_to_db, event_id_exists
+from email_handler import contact_attendees
 from models import EventLog
 from sqlalchemy import select
 from zoneinfo import ZoneInfo
 import requests
 import os
+import json
 import secrets
 
 app = Flask(__name__)
@@ -80,6 +83,26 @@ def _serialize_event(event):
         "age_restriction": event.age_restriction,
         "attendence_restriction": event.attendence_restriction
     }
+
+def _parse_response_data(response) -> tuple:
+    status = None
+    message = "No message returned"
+    
+    if isinstance(response, requests.Response):
+        status = response.status_code
+        try:
+            data = response.json()
+            message = data.get("message", message)
+        except Exception:
+            message = response.text or message
+    elif isinstance(response, FlaskResponse):
+        status = response.status_code
+        try:
+            data = json.loads(response.get_data(as_text=True))
+            message = data.get("message", message)
+        except Exception:
+            message = response.get_data(as_text=True) or message
+    return status, message
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -331,7 +354,7 @@ def rsvp(event_id):
     with get_db() as db:
         e = db.query(EventLog).filter_by(id=event_id).first()
         if not e:
-            return "Event not found", 404
+            return render_template("resultInfo.html", Title="RSVP", Header="RSVP", Status=404, Details="Event not found", user_id=-1)
         e.start_dt = datetime.combine(e.event_date, e.start_time).replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo(e.tz_str))
         e.end_dt   = datetime.combine(e.event_date, e.end_time).replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo(e.tz_str))
         if request.method == "POST":
@@ -345,7 +368,7 @@ def rsvp(event_id):
             }
             e.rsvps.append(rsvp_entry)
             db.commit()
-            return "Thanks for RSVPing!"
+            return render_template("resultInfo.html", Title="RSVP", Header="RSVP", Status=200, Details="RSVP Successful", user_id=-1)
         return render_template("rsvpForm.html", event=e)
 
 
@@ -360,28 +383,28 @@ def email_attendees():
         return redirect(url_for("login"))
     
     data = response.json();
-    
     user_id = request.args.get("uid")
+
     if request.method == "POST":
         # Get form data
         
         subject = request.form["subject"]
         body = request.form["body"]
         recipients = request.form.getlist("recipients")
-        try:
-            additional_email = request.form["includeYourself"]
-            recipients.append(data.email)
-        except Exception as e:
-            print("include yourself not provided")
-        finally:
-            with get_db() as db:
-                event_id = request.args.get("eventid")
-                event = db.query(EventLog).filter_by(id=event_id, user_id=user_id).first()
-                if(event == None):
-                    return redirect(url_for("index"))
-            print(event)
-            # Implement send email here
-        return "Email submitted!"
+        if request.form.get("includeYourself"):
+            recipients.append(data["user"]["email"])
+        else:
+            print("No include found")
+
+        with get_db() as db:
+            event_id = request.args.get("eventid")
+            event = db.query(EventLog).filter_by(id=event_id, user_id=user_id).first()
+            if(event == None):
+                print("Event not found")
+                return redirect(url_for("index"))
+        response = contact_attendees(recipients, subject, event.event_name, body, True)
+        status, message = _parse_response_data(response)
+        return render_template("resultInfo.html", Title="Send Email", Header="Send Email Results", Status=status, Details=message, user_id=user_id)
     else:
         event_id = request.args.get("eventid")
         with get_db() as db:
