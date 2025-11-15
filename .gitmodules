@@ -10,3 +10,7 @@
 	path = Event_Check_In_Microservice
 	url = https://github.com/looking-sharp/Event_Check_In_Microservice
 	branch = main
+[submodule "Media_Management_Microservice"]
+	path = Media_Management_Microservice
+	url = https://github.com/looking-sharp/Media_Management_Microservice
+	branch = main

@@ -35,7 +35,7 @@ services:
 
   event-check-in-microservice:
     build: ./Event_Check_In_Microservice
-    image: eevent-check-in-microservice
+    image: event-check-in-microservice
     ports:
       - "5003:5003"
     environment:
@@ -44,6 +44,19 @@ services:
       DATABASE_URL: sqlite:////app_parent/data/checkin.db
     volumes:
       - ./Event_Check_In_Microservice/..:/app_parent
+    networks:
+      - mynetwork
+
+  media-management-microservice:
+    build: ./Media_Management_Microservice
+    image: media-management-microservice
+    ports:
+      - "5004:5004"
+    environment:
+      FLASK_APP: app.py
+      FLASK_ENV: development
+    volumes:
+      - ./Media_Management_Microservice/..:/app_parent
     networks:
       - mynetwork
 
