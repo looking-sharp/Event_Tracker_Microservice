@@ -120,6 +120,8 @@ def sign_up():
 
         response = requests.post(f"{USER_URL}/auth/register", json=payload)
         if(response.status_code == 201):
+            email_handler.send_welcome_email(email)
+
             payload2 = { "email": email, "password": password}
             response = requests.post(f"{USER_URL}/auth/login", json=payload2)
             data = response.json()

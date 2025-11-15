@@ -55,6 +55,20 @@ def send_cancel_email(recipients: list[str], event):
     """
     return send_email(recipients, subject_line, body, True)
 
+def send_welcome_email(recipient: str):
+    subject_line = "Welcome to Event Tracker!"
+    body = f"""
+        <p><b>This message is regarding your Event Tracker account</b></p>
+        <p>Your account has been successfully created. Welcome to Event Tracker! The easy to use platform for your event tracking needs</p>
+        <ul>
+            <li>Create, update, and track events</li>
+            <li>Collect RSVP's</li>
+            <li>Easily contact attendees</li>
+        </ul>
+        <p>Check out the Github Repo for this project: <a href='https://github.com/looking-sharp/Event_Tracker_Microservice'>Github</a></p>
+    """
+    return send_email([recipient], subject_line, body, True)
+
 def send_goodbye_email(recipient: str):
     subject_line = "Your Account has Been Deleted"
     body = f"""
