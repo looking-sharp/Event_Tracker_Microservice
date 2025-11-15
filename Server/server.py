@@ -4,10 +4,10 @@ from flask.wrappers import Response as FlaskResponse
 from datetime import datetime, time, date
 from flask_cors import CORS
 from database import init_db, get_db, add_to_db, event_id_exists
-from email_handler import contact_attendees, send_cancel_email
 from models import EventLog
 from sqlalchemy import select
 from zoneinfo import ZoneInfo
+import email_handler
 import requests
 import os
 import json
@@ -256,7 +256,7 @@ def delete_event_logic(event_id, user_id):
                 return "event not found", 400
             responders = [r["email"] for r in event.rsvps]
             if responders:
-                send_cancel_email(recipients=responders, event=_serialize_event(event))
+                email_handler.send_cancel_email(recipients=responders, event=_serialize_event(event))
             print(f"deleting event: {event.id} - {event.event_name}")
             db.delete(event)
             db.commit()
@@ -274,10 +274,18 @@ def delete_event(event_id, user_id):
 
 @app.route("/delete_account/<user_id>", methods=["POST"])
 def delete_account(user_id):
-    if not _get_user_validity():
+    if TOKEN == "":
         return redirect(url_for("index"))
+    headers = { "Authorization": f"Bearer {TOKEN}" }
+    response = requests.get(f"{USER_URL}/auth/verify", headers=headers)
+    
+    if(response.status_code != 200):
+        return redirect(url_for("index"))
+    
+    data = response.json();
+    email = data["user"]["email"]
 
-    #email_handeler.send_account_delete_email(user["email"])
+    email_handler.send_goodbye_email(email)
     with get_db() as db:
         events = db.query(EventLog).filter_by(user_id=user_id).all()
         for event in events:
@@ -285,9 +293,9 @@ def delete_account(user_id):
         
         headers = { "Authorization": f"Bearer {TOKEN}" }
         response = requests.post(f"{USER_URL}/auth/delete-account", headers=headers)
-        print(response.json())
+        status, message = _parse_response_data(response)
 
-        return redirect(url_for("sign_up"))
+        return render_template("resultInfo.html", Title="Deleted Account", Header="Delete Account Results", Status=status, Details=message, user_id=-1)
 
 @app.route("/updateEvent/<user_id>/<event_id>", methods=["GET", "POST"])
 def update_event(user_id, event_id):
@@ -406,7 +414,7 @@ def email_attendees():
             if(event == None):
                 print("Event not found")
                 return redirect(url_for("index"))
-        response = contact_attendees(recipients=recipients, subject_line=subject, body=body, is_html=True, event=_serialize_event(event))
+        response = email_handler.contact_attendees(recipients=recipients, subject_line=subject, body=body, is_html=True, event=_serialize_event(event))
         status, message = _parse_response_data(response)
         return render_template("resultInfo.html", Title="Send Email", Header="Send Email Results", Status=status, Details=message, user_id=user_id)
     else:

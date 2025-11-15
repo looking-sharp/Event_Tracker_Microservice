@@ -54,3 +54,12 @@ def send_cancel_email(recipients: list[str], event):
         <br>
     """
     return send_email(recipients, subject_line, body, True)
+
+def send_goodbye_email(recipient: str):
+    subject_line = "Your Account has Been Deleted"
+    body = f"""
+        <p><b>This message is regarding your Event Tracker account</b></p>
+        <p>Your account has been successfully deleted. Thank you for using my application</p>
+        <p>- Thomas</p>
+    """
+    return send_email([recipient], subject_line, body, True)
