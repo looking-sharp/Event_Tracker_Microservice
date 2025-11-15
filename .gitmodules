@@ -6,3 +6,7 @@
 	path = Email_Microservice
 	url = https://github.com/looking-sharp/Email_Microservice
 	branch = main
+[submodule "Event_Check_In_Microservice"]
+	path = Event_Check_In_Microservice
+	url = https://github.com/looking-sharp/Event_Check_In_Microservice
+	branch = main
