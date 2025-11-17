@@ -427,7 +427,17 @@ def email_attendees():
                 return redirect(url_for("index"))
             return render_template("emailAttendees.html", user_id=user_id, event_id=event_id, event=event)
 
-
+@app.route("/create-check-in-form/<event_id>", methods=["GET", "POST"])
+def create_form(event_id):
+#    if not _get_user_validity():
+#        return redirect(url_for("index"))     pEPLUpMnU6xj
+    with get_db() as db:
+        e = db.query(EventLog).filter_by(id=event_id).first()
+        if not e:
+            return render_template("resultInfo.html", Title="RSVP", Header="RSVP", Status=404, Details="Event not found", user_id=-1)
+    if request.method == 'GET':
+        return render_template("newForm.html", event_id=event_id)
+    return render_template("index.html")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))

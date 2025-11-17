@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/checkIn.css') }}">
+  <link rel="manifest" href="{{ url_for('static',filename='favicon_io/site.webmanifest')}}">
+  <title>Check In</title>
+</head>
+
+<header>
+  <h1>Create Check in Form</h1>
+</header>
+<body class="fixed-body">
+    <main>
+    <div id="builder">
+        <h2>Add Field</h2>
+
+        <label>Label:</label>
+        <input id="labelInput" type="text">
+
+        <label>Field Name (snake_case):</label>
+        <input id="nameInput" type="text">
+        
+        <div class="side-by-side-div">
+            <label>Field Type:</label>
+            <select id="typeInput">
+            </select>
+        </div>
+
+        <div class="side-by-side-div">
+            <label>Required:</label>
+            <input id="requiredInput" type="checkbox">
+        </div>
+
+        <div id="optionsContainer" style="display:none;">
+            <label>Options (comma separated):</label>
+            <input id="optionsInput" type="text">
+        </div>
+
+        <button id="addFieldBtn">Add Field</button>
+
+        <h3>Current Fields:</h3>
+        <ul id="fieldList"></ul>
+
+        <h2>Form Preview</h2>
+        <form id="previewForm"></form>
+        
+        <button id="submitBtn">Submit Form</button>
+    </div>
+
+    <h2>Output JSON:</h2>
+    <pre id="outputBox"></pre>
+    <footer>
+        Website by Thomas Sharp
+    </footer>
+    <script src="{{ url_for('static',filename='scripts/createForm.js') }}"></script>
+</body>
+</html>
