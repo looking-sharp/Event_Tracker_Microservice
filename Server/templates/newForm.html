@@ -51,7 +51,7 @@
 
     <div style="width: 600px; display: flex; margin: auto;">
         <button id="showBuilder" style="margin-right: 10px;">Add Field</button>
-        <form id="submitForm" style="width:fit-content; margin-left: 0;" action="/create-check-in-form/{{ event_id }}", method="POST">
+        <form id="submitForm" style="width:fit-content; margin-left: 0;" action="/create-check-in-form/{{ user_id }}/{{ event_id }}", method="POST">
             <button id="submitBtn">Submit Form</button>
             <input type="hidden" id="fieldsOutput" name="fieldsOutput">
         </form>

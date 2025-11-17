@@ -249,3 +249,18 @@ footer {
 .contact-button:hover {
   background-color: #047f52;
 }
+
+.check-in-div {
+  display: flex;
+}
+
+.check-in-div form {
+  width: fit-content;
+  margin: auto;
+  margin-left: 0;
+  margin-top: 0;
+}
+
+.check-in-div button {
+  float: none;
+}

@@ -8,6 +8,7 @@ from models import EventLog
 from sqlalchemy import select
 from zoneinfo import ZoneInfo
 import email_handler
+import check_in_handler
 import requests
 import os
 import json
@@ -427,19 +428,23 @@ def email_attendees():
                 return redirect(url_for("index"))
             return render_template("emailAttendees.html", user_id=user_id, event_id=event_id, event=event)
 
-@app.route("/create-check-in-form/<event_id>", methods=["GET", "POST"])
-def create_form(event_id):
-#    if not _get_user_validity():
-#        return redirect(url_for("index"))     pEPLUpMnU6xj
+@app.route("/create-check-in-form/<user_id>/<event_id>", methods=["GET", "POST"])
+def create_form(user_id, event_id):
+    #if not _get_user_validity():
+    #    return redirect(url_for("index"))          /a2tOqWYaxf-3/PO6rocqt3-uD
     with get_db() as db:
         e = db.query(EventLog).filter_by(id=event_id).first()
         if not e:
             return render_template("resultInfo.html", Title="RSVP", Header="RSVP", Status=404, Details="Event not found", user_id=-1)
     if request.method == 'GET':
-        return render_template("newForm.html", event_id=event_id)
+        return render_template("newForm.html", event_id=event_id, user_id=user_id)
     elif request.method == 'POST':
-        print(request.form.get("fieldsOutput"))
-    return render_template("index.html")
+        fields = json.loads(request.form.get("fieldsOutput"))
+        fields_list = fields.get("fields", [])
+
+        response = check_in_handler.create_form(event_id=event_id, fields=fields_list)
+        status, message = _parse_response_data(response)
+        return render_template("resultInfo.html", Title="Send Email", Header="Send Email Results", Status=status, Details=message, user_id=user_id)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))

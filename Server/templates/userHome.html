@@ -81,6 +81,16 @@
       <b>No one has RSVP'd for this event yet <br>Share the link above to recieve RSVP's</b>
       {% endif %}
     </div>
+    <div class="check-in-div">
+      <form action='{{ url_for("create_form", event_id=event["id"], user_id=user_id) }}' method="GET" class="drop-button-class">
+        <button type="submit" onclick="" class="drop-button">
+          Update Check In Form
+        </button>
+      </form>
+      {% if event["check_in_link"] %}
+        <a href='{{ event["check_in_link"] }}''>Home page</a>
+      {% endif %}
+    </div>
   </div>
   {% endfor %}
   <form action='{{ url_for("delete_account", user_id=user_id) }}' method="POST" id="delete-account">
