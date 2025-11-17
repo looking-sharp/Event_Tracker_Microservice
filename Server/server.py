@@ -437,6 +437,8 @@ def create_form(event_id):
             return render_template("resultInfo.html", Title="RSVP", Header="RSVP", Status=404, Details="Event not found", user_id=-1)
     if request.method == 'GET':
         return render_template("newForm.html", event_id=event_id)
+    elif request.method == 'POST':
+        print(request.form.get("fieldsOutput"))
     return render_template("index.html")
 
 if __name__ == "__main__":

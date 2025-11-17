@@ -3,6 +3,14 @@
   margin: auto; 
 }
 
+#builder {
+  border: 2px black solid;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 10px;
+  padding-top: 0;
+}
+
 button { 
   margin-top: 1.5em; 
   padding: 0.7em 1.5em; 
@@ -190,4 +198,17 @@ input[type=number], input[type=time], input[type=date], input[type=datetime], in
 
 input[type=color]{
   width: 100px;
+}
+
+.required {
+  color: red;
+}
+
+.delete-field-btn {
+  margin-top: 5px;
+  color: white;
+  background-color: #ab2b2b;
+  border: 2px black solid;
+  border-radius: 5px;
+  margin-bottom: 10px;
 }

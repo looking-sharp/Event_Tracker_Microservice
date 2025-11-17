@@ -13,7 +13,10 @@
 </header>
 <body class="fixed-body">
     <main>
-    <div id="builder">
+    <form id="previewForm">
+        <h2>Form Preview</h2>
+    </form>
+    <div id="builder" style="display: none;">
         <h2>Add Field</h2>
 
         <label>Label:</label>
@@ -33,24 +36,26 @@
             <input id="requiredInput" type="checkbox">
         </div>
 
+        <div id="multiVariedContainer" class="side-by-side-div">
+            <label>Is MultiVaried:</label>
+            <input id="multiVaried" type="checkbox">
+        </div>
+
         <div id="optionsContainer" style="display:none;">
             <label>Options (comma separated):</label>
             <input id="optionsInput" type="text">
         </div>
 
         <button id="addFieldBtn">Add Field</button>
-
-        <h3>Current Fields:</h3>
-        <ul id="fieldList"></ul>
-
-        <h2>Form Preview</h2>
-        <form id="previewForm"></form>
-        
-        <button id="submitBtn">Submit Form</button>
     </div>
 
-    <h2>Output JSON:</h2>
-    <pre id="outputBox"></pre>
+    <div style="width: 600px; display: flex; margin: auto;">
+        <button id="showBuilder" style="margin-right: 10px;">Add Field</button>
+        <form id="submitForm" style="width:fit-content; margin-left: 0;" action="/create-check-in-form/{{ event_id }}", method="POST">
+            <button id="submitBtn">Submit Form</button>
+            <input type="hidden" id="fieldsOutput" name="fieldsOutput">
+        </form>
+    </div>
     <footer>
         Website by Thomas Sharp
     </footer>
