@@ -268,6 +268,7 @@ def delete_event_logic(event_id, user_id):
             if responders:
                 email_handler.send_cancel_email(recipients=responders, event=_serialize_event(event))
             print(f"deleting event: {event.id} - {event.event_name}")
+            requests.post(f'{CHECK_URL}/delete-form?formID="{event.check_in_token}"')
             db.delete(event)
             db.commit()
             return "event deleted", 200
