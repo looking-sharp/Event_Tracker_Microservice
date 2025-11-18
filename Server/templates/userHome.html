@@ -81,16 +81,21 @@
       <b>No one has RSVP'd for this event yet <br>Share the link above to recieve RSVP's</b>
       {% endif %}
     </div>
-    <div class="check-in-div">
-      <form action='{{ url_for("create_form", event_id=event["id"], user_id=user_id) }}' method="GET" class="drop-button-class">
-        <button type="submit" onclick="" class="drop-button">
-          Update Check In Form
-        </button>
-      </form>
-      <a class="contact-button" href='{{ event["home_page_url"] }}'>Check In Front Page</a>
-      <a class="contact-button" href='{{ url_for("email_submissions", user_id=user_id, event_id=event["id"]) }}'>Email Submissions to Self</a>
+    <div class="check-in-header">
+      <h3 class="check-in-header" onclick="toggleDetails('{{ event.id }}')">Check In Details<span class="arrow" id="arrow-{{event['id']}}">▶</span></h3>
     </div>
-    <iframe src='{{ event["check_in_submissions_url"] }}' width="650" height="400" title="Submissions" style="float: right;"></iframe>
+    <div class="check-in-container" id="checkin-{{event['id']}}" style="display: none;">
+      <div class="check-in-div">
+        <form action='{{ url_for("create_form", event_id=event["id"], user_id=user_id) }}' method="GET" class="drop-button-class">
+          <button type="submit" onclick="" class="drop-button">
+            Update Check In Form
+          </button>
+        </form>
+        <a class="contact-button" href='{{ event["home_page_url"] }}'>Check In Front Page</a>
+        <a class="contact-button" href='{{ url_for("email_submissions", user_id=user_id, event_id=event["id"]) }}'>Email Submissions to Self</a>
+      </div>
+      <iframe src='{{ event["check_in_submissions_url"] }}' width="650" height="400" title="Submissions" style="float: right;"></iframe>
+    </div>
   </div>
   {% endfor %}
   <form action='{{ url_for("delete_account", user_id=user_id) }}' method="POST" id="delete-account">

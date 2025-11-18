@@ -264,3 +264,31 @@ footer {
 .check-in-div button {
   float: none;
 }
+
+.check-in-container {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: flex-start;
+  max-width: 1000px;
+}
+
+.check-in-container a {
+  margin-left: 0;
+}
+
+.check-in-header {
+  cursor: pointer;
+}
+
+.check-in-header {
+  display: flex;
+}
+
+.arrow {
+  margin-left: 10px;
+  font-size: 14px;
+  transition: transform 0.2s;
+}
+.arrow.open {
+  transform: rotate(90deg);
+}
