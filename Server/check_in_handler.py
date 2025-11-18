@@ -8,27 +8,11 @@ import os
 load_dotenv()
 CHECK_IN_URL = os.getenv("CHECK_IN_MICROSERVICE_URL")
 
-
-"""
-    Args:
-        Request (JSON):
-        {
-            "event_id": "string",
-            "event_name": "string",
-            "event_date": "DateTime",
-            fields = [
-                {
-                    "field_id": "string",
-                    "field_type": "string",
-                    "field_name": "string",
-                    "label": "string",
-                    "required": "boolean"
-                },
-                ...
-            ]
-        }
-"""
 def create_form(event_id: str, fields: dict):
+    """ Main interactor with the event check in microservice
+        It creates a form based on event data found from event_id
+        and a dict of fields.
+    """
     with get_db() as db:
         e = db.query(EventLog).filter_by(id=event_id).first()
         if not e:
@@ -73,6 +57,7 @@ def create_form(event_id: str, fields: dict):
             return make_response(jsonify({"message": details}), status)
 
 def create_default_form(event_id: str):
+    """ On event creation, make a default check in survey """
     fields = [{
       "field_id": "fld_1",
       "field_type": "text",

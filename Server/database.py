@@ -84,5 +84,6 @@ def find_in_db(session: Session, model, **filters):
     return session.query(model).filter_by(**filters).first()
 
 def event_id_exists(_id: str) -> bool:
+    """ Returns if a given id already exists """
     with get_db() as db:
         return find_in_db(db, EventLog, id=_id) is not None

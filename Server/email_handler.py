@@ -7,10 +7,14 @@ load_dotenv()
 EMAIL_URL = os.getenv("EMAIL_MICROSERVICE_URL")
 
 def _convert_to_html(body: str) -> str:
+    """Converts a non-HTML string to HTML for emailing"""
     bslash = '\n'
     return f"<p>{body.replace(bslash, '<br>')}</p>"
 
 def send_email(recipients: list[str], subject_line: str, body: str, is_html: bool):
+    """ Main interaction with the email microservice, it 
+        sends an email based on the above parameters and returns a json response
+    """
     with open("templates/signature.html", "r") as signature:
         signature_html = signature.read()
         payload = {
@@ -38,6 +42,7 @@ def send_email(recipients: list[str], subject_line: str, body: str, is_html: boo
         return make_response(jsonify({"message": details}), status)
 
 def contact_attendees(recipients: list[str], subject_line: str, body: str, is_html: bool, event):
+    """ Sends an email based on an event to selected attendees """
     if not is_html:
         body = _convert_to_html(body)
         is_html = True
@@ -46,6 +51,7 @@ def contact_attendees(recipients: list[str], subject_line: str, body: str, is_ht
     return send_email(recipients, subject_line, body, is_html)
 
 def send_cancel_email(recipients: list[str], event):
+    """ Sends a cancel email for respondants """
     subject_line = "An Event You RSVP'd for was Canceled"
     body = f"""
         <p><b>This message is regarding: {event['event_name']} on {event['event_date']}</b></p>
@@ -56,6 +62,7 @@ def send_cancel_email(recipients: list[str], event):
     return send_email(recipients, subject_line, body, True)
 
 def send_welcome_email(recipient: str):
+    """ Sends a welcome email to new users """
     subject_line = "Welcome to Event Tracker!"
     body = f"""
         <p><b>This message is regarding your Event Tracker account</b></p>
@@ -70,6 +77,7 @@ def send_welcome_email(recipient: str):
     return send_email([recipient], subject_line, body, True)
 
 def send_goodbye_email(recipient: str):
+    """ Sends a goodbye email to users who delete their accounts """
     subject_line = "Your Account has Been Deleted"
     body = f"""
         <p><b>This message is regarding your Event Tracker account</b></p>

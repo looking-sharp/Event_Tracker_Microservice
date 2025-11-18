@@ -37,6 +37,12 @@ CORS(app, resources={
 })
 
 def _get_user_validity() -> bool:
+    """ Function to check if the current user token is valid
+        - Uses User Auth Mcroservice    
+    
+        Returns (bool):
+            if the user's token is valid
+    """
     if TOKEN == "":
         return False
     headers = { "Authorization": f"Bearer {TOKEN}" }
@@ -61,7 +67,9 @@ def _convert_to_utc(event_date_str, time_str, tz_str):
     return utc_dt.time()
 
 def _serialize_event(event):
-    # Convert times from UTC to the event's timezone
+    """ Function to turn an event into a serializable object
+        so that it can be passed to HTML files
+    """
     tz = ZoneInfo(event.tz_str) if event.tz_str else None
 
     def convert_time(t: time):
@@ -88,6 +96,9 @@ def _serialize_event(event):
     }
 
 def _parse_response_data(response) -> tuple:
+    """ Helper function to catch possible errors on recieving
+        HTTP data
+    """
     status = None
     message = "No message returned"
     
@@ -109,10 +120,15 @@ def _parse_response_data(response) -> tuple:
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    """ Home page """
     return render_template("index.html")
 
 @app.route("/signUp", methods=["GET", "POST"])
 def sign_up():
+    """ Page so the user can sign up. 
+        - Uses User Auth Mcroservice
+        - Uses Email Microservice
+    """
     global TOKEN
     if request.method == "POST":
         name = request.form.get("username")
@@ -137,6 +153,9 @@ def sign_up():
 
 @app.route("/check_email")
 def check_email():
+    """ Route to check if an email is already in use
+        - Uses User Auth Microservice
+    """
     email = request.args.get("email", "").strip()
     if not email:
         return jsonify({"exists": False})
@@ -149,6 +168,9 @@ def check_email():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """ Route for a user to log in to their account
+        - Uses User Auth Microservice
+    """
     global TOKEN
     if request.method == "POST":
         email = request.form["email"]
@@ -166,6 +188,9 @@ def login():
 
 @app.route("/signout")
 def signout():
+    """ Route for users to sign out
+        - Uses User Auth Microservice
+    """
     global TOKEN
     if TOKEN != "":
         headers = { "Authorization": f"Bearer {TOKEN}" }
@@ -176,6 +201,9 @@ def signout():
 
 @app.route("/userHome/<user_id>")
 def user_page(user_id):
+    """ Brings a user to their dashboard and makes sure all
+        their events are loaded in
+    """
     if TOKEN == "":
         return redirect(url_for("index"))
     headers = { "Authorization": f"Bearer {TOKEN}" }
@@ -209,6 +237,9 @@ def user_page(user_id):
 
 @app.route("/createEvent/<user_id>", methods=["GET", "POST"])
 def create_event(user_id):
+    """ Brings uses to the create event form is GET, and adds
+        the event based on the form information if POST to db
+    """
     if not _get_user_validity():
         return redirect(url_for("index"))
 
@@ -259,6 +290,10 @@ def create_event(user_id):
     return render_template("newEvent.html", user_id=user_id)
 
 def delete_event_logic(event_id, user_id):
+    """ Helper function to delete an event from the database
+        - Uses Email Microservice
+        - Uses Event Check In Microservice
+    """
     try:
         with get_db() as db:
             event = db.query(EventLog).filter(EventLog.id == event_id,EventLog.user_id == user_id).first()
@@ -278,6 +313,7 @@ def delete_event_logic(event_id, user_id):
 
 @app.route("/delete_event/<event_id>/<user_id>", methods=["POST"])
 def delete_event(event_id, user_id):
+    """ Route to delete an event """
     if not _get_user_validity():
         return redirect(url_for("index"))
     message, status = delete_event_logic(event_id, user_id)
@@ -285,6 +321,11 @@ def delete_event(event_id, user_id):
 
 @app.route("/delete_account/<user_id>", methods=["POST"])
 def delete_account(user_id):
+    """ Route to delete a users account and
+        recursively delete all their events
+        - Uses User Auth Microservice
+        - Uses Email Microservice
+    """
     if TOKEN == "":
         return redirect(url_for("index"))
     headers = { "Authorization": f"Bearer {TOKEN}" }
@@ -310,6 +351,9 @@ def delete_account(user_id):
 
 @app.route("/updateEvent/<user_id>/<event_id>", methods=["GET", "POST"])
 def update_event(user_id, event_id):
+    """ Brings uses to the update event form is GET, and updates
+        the event based on the form information if POST to db
+    """
     if not _get_user_validity():
         return redirect(url_for("index"))
     
@@ -358,7 +402,7 @@ def update_event(user_id, event_id):
 
 @app.route("/getEvent")
 def get_event():
-    print("got request")
+    """ Route to grab an event from database """
     event_id = request.args.get("event_id", "").strip()
     with get_db() as db:
         event = db.query(EventLog).filter(EventLog.id == event_id).first()
@@ -374,6 +418,9 @@ def get_event():
 
 @app.route("/rsvp/<event_id>", methods=["GET", "POST"])
 def rsvp(event_id):
+    """ Route to bring users to an RSVP form for a spesific event
+        if GET, and update the database with their information if POST
+    """
     with get_db() as db:
         e = db.query(EventLog).filter_by(id=event_id).first()
         if not e:
@@ -397,6 +444,10 @@ def rsvp(event_id):
 
 @app.route("/email", methods=["GET", "POST"])
 def email_attendees():
+    """ Route that bring users to an email form is GET
+        and sends the email to listed recipients if post
+        - Uses Email Microservice
+    """
     if TOKEN == "":
         return redirect(url_for("index"))
     headers = { "Authorization": f"Bearer {TOKEN}" }
@@ -438,6 +489,11 @@ def email_attendees():
 
 @app.route("/email-submissions/<user_id>/<event_id>")
 def email_submissions(user_id, event_id):
+    """ Route to email the submissions from the check in form
+        to the user's main email
+        - Uses Email Microservice
+        - Uses Event Check In Microservice
+    """
     if TOKEN == "":
         return redirect(url_for("index"))
     headers = { "Authorization": f"Bearer {TOKEN}" }
@@ -460,6 +516,10 @@ def email_submissions(user_id, event_id):
 
 @app.route("/create-check-in-form/<user_id>/<event_id>", methods=["GET", "POST"])
 def create_form(user_id, event_id):
+    """ Route to bring users to a create form form if GET, and take
+        the fields to create a check in form if POST
+        - Uses Event Check In Microservice
+    """
     if not _get_user_validity():
         return redirect(url_for("index"))
     with get_db() as db:
