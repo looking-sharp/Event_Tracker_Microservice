@@ -30,7 +30,6 @@ class EventLog(Base):
     age_restriction = Column(Integer, default=None)
     attendence_restriction = Column(Text, default=None)
 
-    check_in_link = Column(Text)
     check_in_token = Column(Text)
     
     

@@ -135,7 +135,7 @@ table {
 }
 
 .event-div h3, .event-div p{
-  word-break: break-all;
+  word-break: break-word;
 }
 
 .drop-button-class {
@@ -251,7 +251,7 @@ footer {
 }
 
 .check-in-div {
-  display: flex;
+  display: inline-grid;
 }
 
 .check-in-div form {

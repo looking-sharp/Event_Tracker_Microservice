@@ -19,6 +19,8 @@ app = Flask(__name__)
 load_dotenv()
 EMAIL_URL = os.getenv("EMAIL_MICROSERVICE_URL")
 USER_URL = os.getenv("USER_AUTH_MICROSERVICE_URL")
+PUB_CHECK_URL = os.getenv("PUB_CHECK_URL")
+CHECK_URL = os.getenv("CHECK_IN_MICROSERVICE_URL")
 TOKEN = ""
 
 def create_event_id(length: int = 12) -> str:
@@ -189,19 +191,21 @@ def user_page(user_id):
             select(EventLog).where(EventLog.user_id == user_id)
         ).scalars().all()
     
-    # Format time for displaying
-    for e in events:
-        e.start_dt = datetime.combine(e.event_date, e.start_time).replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo(e.tz_str))
-        e.end_dt   = datetime.combine(e.event_date, e.end_time).replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo(e.tz_str))
-    
-    return render_template(
-        "userHome.html",
-        username=data.get("user").get("name"),
-        user_id=user_id,
-        url=request.host_url,
-        events=events,
-        num_events=len(events)
-    )
+        # Format time for displaying
+        for e in events:
+            e.start_dt = datetime.combine(e.event_date, e.start_time).replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo(e.tz_str))
+            e.end_dt   = datetime.combine(e.event_date, e.end_time).replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo(e.tz_str))
+            e.home_page_url = f'{PUB_CHECK_URL}/get-check-in-front-page?formID="{e.check_in_token}"'
+            e.check_in_submissions_url = f'{PUB_CHECK_URL}/check-submissions?formID="{e.check_in_token}"'
+        
+        return render_template(
+            "userHome.html",
+            username=data.get("user").get("name"),
+            user_id=user_id,
+            url=request.host_url,
+            events=events,
+            num_events=len(events)
+        )
 
 @app.route("/createEvent/<user_id>", methods=["GET", "POST"])
 def create_event(user_id):
@@ -245,6 +249,9 @@ def create_event(user_id):
         # Save to DB
         with get_db() as db:
             add_to_db(db, new_event)
+
+        # create default check in form
+        check_in_handler.create_default_form(new_event.id)
 
         return redirect(url_for("user_page", user_id=user_id))
 
@@ -428,14 +435,36 @@ def email_attendees():
                 return redirect(url_for("index"))
             return render_template("emailAttendees.html", user_id=user_id, event_id=event_id, event=event)
 
-@app.route("/create-check-in-form/<user_id>/<event_id>", methods=["GET", "POST"])
-def create_form(user_id, event_id):
-    #if not _get_user_validity():
-    #    return redirect(url_for("index"))          /a2tOqWYaxf-3/PO6rocqt3-uD
+@app.route("/email-submissions/<user_id>/<event_id>")
+def email_submissions(user_id, event_id):
+    if TOKEN == "":
+        return redirect(url_for("index"))
+    headers = { "Authorization": f"Bearer {TOKEN}" }
+    response = requests.get(f"{USER_URL}/auth/verify", headers=headers)
+    
+    if(response.status_code != 200):
+        return redirect(url_for("login"))
+    
+    data = response.json();
     with get_db() as db:
         e = db.query(EventLog).filter_by(id=event_id).first()
         if not e:
-            return render_template("resultInfo.html", Title="RSVP", Header="RSVP", Status=404, Details="Event not found", user_id=-1)
+            return render_template("resultInfo.html", Title="Email Submissions", Header="Emal Submissions", Status=404, Details="Event not found", user_id=user_id)
+        url = f'{CHECK_URL}/check-submissions?formID="{e.check_in_token}"&asString=True'
+        check_response = requests.get(url)
+        email_results = email_handler.send_email([data["user"]["email"]], "Check In Submissions", check_response.json().get("html"), True)
+        status, message = _parse_response_data(email_results)
+        return render_template("resultInfo.html", Title="Send Email", Header="Send Email Results", Status=status, Details=message, user_id=user_id)
+
+
+@app.route("/create-check-in-form/<user_id>/<event_id>", methods=["GET", "POST"])
+def create_form(user_id, event_id):
+    if not _get_user_validity():
+        return redirect(url_for("index"))
+    with get_db() as db:
+        e = db.query(EventLog).filter_by(id=event_id).first()
+        if not e:
+            return render_template("resultInfo.html", Title="Create Form", Header="Create Check In Form", Status=404, Details="Event not found", user_id=user_id)
     if request.method == 'GET':
         return render_template("newForm.html", event_id=event_id, user_id=user_id)
     elif request.method == 'POST':

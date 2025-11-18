@@ -7,7 +7,7 @@ import os
 
 load_dotenv()
 CHECK_IN_URL = os.getenv("CHECK_IN_MICROSERVICE_URL")
-PUB_CHECK_URL = "http://localhost:5003"
+
 
 """
     Args:
@@ -36,6 +36,10 @@ def create_form(event_id: str, fields: dict):
             details = "Event ID is invalid."
             return make_response(jsonify({"message": details}), status)
 
+        if e.check_in_token:
+            response = requests.post(f'{CHECK_IN_URL}/delete-form?formID="{e.check_in_token}"')
+            e.check_in_token = None
+
         event_name = e.event_name
         event_date = e.event_date
         end_time = e.end_time
@@ -51,7 +55,6 @@ def create_form(event_id: str, fields: dict):
             data = response.json()
             form_id = data.get("form_id")
 
-            e.check_in_link = f'{PUB_CHECK_URL}/get-check-in-front-page?formID="{form_id}"'
             e.check_in_token = form_id
             db.commit()
 
@@ -68,3 +71,28 @@ def create_form(event_id: str, fields: dict):
             status = 500
             details = str(e)
             return make_response(jsonify({"message": details}), status)
+
+def create_default_form(event_id: str):
+    fields = [{
+      "field_id": "fld_1",
+      "field_type": "text",
+      "field_name": "first_name",
+      "label": "First Name",
+      "required": True
+    },
+    {
+      "field_id": "fld_1",
+      "field_type": "text",
+      "field_name": "last_name",
+      "label": "Last Name",
+      "required": True
+    },
+    {
+      "field_id": "fld_2",
+      "field_type": "email",
+      "field_name": "email",
+      "label": "Email",
+      "required": False
+    }]
+    return create_form(event_id=event_id, fields=fields)
+    
