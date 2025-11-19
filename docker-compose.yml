@@ -58,6 +58,19 @@ services:
     networks:
       - mynetwork
 
+  review-and-feedback-microservice:
+    build: ./Review-And-Feedback-Microservice
+    image: review-and-feedback-microservice
+    ports:
+      - "5005:5005"
+    environment:
+      FLASK_APP: app.py
+      FLASK_ENV: development
+    volumes:
+      - ./Review-And-Feedback-Microservice/..:/app_parent
+    networks:
+      - mynetwork
+
   server:
     build: ./Server
     image: server
