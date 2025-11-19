@@ -91,7 +91,7 @@
             Update Check In Form
           </button>
         </form>
-        <a class="contact-button" href='{{ event["home_page_url"] }}'>Check In Front Page</a>
+        <a class="contact-button" href='{{ event["home_page_url"] }}' target="_blank">Check In Front Page</a>
         <a class="contact-button" href='{{ url_for("email_submissions", user_id=user_id, event_id=event["id"]) }}'>Email Submissions to Self</a>
       </div>
       <iframe src='{{ event["check_in_submissions_url"] }}' width="650" height="400" title="Submissions" style="float: right;"></iframe>
