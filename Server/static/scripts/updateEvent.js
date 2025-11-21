@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("timezone").value = data.event.tz_str;
             document.getElementById("public").checked = data.event.public;
             
-            if(data.event.hasOwnProperty("age_restriction")) {
+            if(data.event.hasOwnProperty("age_restriction") && Number(data.event.age_restriction) != 0) {
                 document.getElementById("age_restriction").value = Number(data.event.age_restriction);
             }
             else {
@@ -33,6 +33,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             if(data.event.hasOwnProperty("attendence_restriction")) {
                 document.getElementById("attendence_restriction").value = data.event.attendence_restriction;
+            }
+            if(data.event.hasOwnProperty("cover_photo_url_id")) {
+                document.getElementById("cover_label").textContent = "Change Photo";
             }
             setTimeout(() => {
                 content.style.display = "block";

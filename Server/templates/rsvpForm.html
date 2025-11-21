@@ -15,7 +15,10 @@
 <header>
   <h1>RSVP for {{ event.event_name }}</h1>
 </header>
-<body class="fixed-body">
+<body class="fixed-body"></body>
+  {% if cover_photo_link %}
+    <iframe src='{{ cover_photo_link }}' title="CoverPhoto"></iframe>
+  {% endif %}
   <div class="event-details-container">
     <div class="event-details">
       <h3> For: {{ event["event_name"] }} </h3>

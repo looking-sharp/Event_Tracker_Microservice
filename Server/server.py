@@ -20,8 +20,12 @@ app = Flask(__name__)
 load_dotenv()
 EMAIL_URL = os.getenv("EMAIL_MICROSERVICE_URL")
 USER_URL = os.getenv("USER_AUTH_MICROSERVICE_URL")
-PUB_CHECK_URL = os.getenv("PUB_CHECK_URL")
 CHECK_URL = os.getenv("CHECK_IN_MICROSERVICE_URL")
+MEDIA_URL = os.getenv("MEDIA_MICROSERVICE_URL")
+REVIEW_URL = os.getenv("REVIEW_AND_FEEDBACK_MICROSERVICE_URL")
+
+PUB_CHECK_URL = os.getenv("PUB_CHECK_URL")
+PUB_MEDIA_URL = os.getenv("PUB_MEDIA_URL")
 TOKEN = ""
 
 def create_event_id(length: int = 12) -> str:
@@ -93,7 +97,8 @@ def _serialize_event(event):
         "event_location": event.event_location,
         "event_description": event.event_description,
         "age_restriction": event.age_restriction,
-        "attendence_restriction": event.attendence_restriction
+        "attendence_restriction": event.attendence_restriction,
+        "cover_photo_url_id": event.cover_photo_url_id
     }
 
 def _parse_response_data(response) -> tuple:
@@ -123,6 +128,24 @@ def _parse_response_data(response) -> tuple:
 def index():
     """ Home page """
     return render_template("index.html")
+
+@app.route("/check-microservices", methods=["GET"])
+def checkMicroservices():
+    returned = {}
+    urls = [EMAIL_URL, USER_URL, CHECK_URL, MEDIA_URL, REVIEW_URL]
+    names = ["email microservice", "user auth microservice", "event check in microservice", "media management microservice", "review and feedback microservice"]
+    for i in range(len(urls)):
+        if urls[i]:
+            try:
+                response = requests.get(f"{urls[i]}/health")
+                returned[names[i]] = response.json().get("message")
+                if returned[names[i]] is None:
+                    returned[names[i]] = response.json().get("status")
+            except Exception as e:
+                returned[names[i]] = "NOT ACTIVE"
+        else:
+            returned[names[i]] = "NOT DEFINED IN ENV" 
+    return jsonify(returned), 200
 
 @app.route("/signUp", methods=["GET", "POST"])
 def sign_up():
@@ -280,11 +303,12 @@ def create_event(user_id):
 
         if 'cover_photo' in request.files:
             file = request.files['cover_photo']
-            response = _parse_response_data(media_handler.upload_file(file, None))
-            response_data = response.json()
-            if "url_id" in response_data:
-                new_event.cover_photo_url_id = response_data["url_id"]
-                print(response_data["url_id"])
+            if file and file.filename:
+                response = _parse_response_data(media_handler.upload_file(file, None))
+                response_data = response.json()
+                if "url_id" in response_data:
+                    new_event.cover_photo_url_id = response_data["url_id"]
+                    print(response_data["url_id"])
 
         # Save to DB
         with get_db() as db:
@@ -403,11 +427,12 @@ def update_event(user_id, event_id):
             
             if 'cover_photo' in request.files:
                 file = request.files.get('cover_photo')
-                response = media_handler.upload_file(file, event.cover_photo_url_id)
-                response_data = response.json()
-                if "url_id" in response_data:
-                    event.cover_photo_url_id = response_data["url_id"]
-                    print(response_data["url_id"])
+                if file and file.filename:
+                    response = media_handler.upload_file(file, event.cover_photo_url_id)
+                    response_data = response.json()
+                    if "url_id" in response_data:
+                        event.cover_photo_url_id = response_data["url_id"]
+                        print(response_data["url_id"])
 
             # Commit changes
             db.commit()
@@ -456,7 +481,10 @@ def rsvp(event_id):
             e.rsvps.append(rsvp_entry)
             db.commit()
             return render_template("resultInfo.html", Title="RSVP", Header="RSVP", Status=200, Details="RSVP Successful", user_id=-1)
-        return render_template("rsvpForm.html", event=e)
+        cover_photo_link = None
+        if e.cover_photo_url_id is not None:
+            cover_photo_link = f"{PUB_MEDIA_URL}/access/{e.cover_photo_url_id}"
+        return render_template("rsvpForm.html", event=e, cover_photo_link = cover_photo_link)
 
 
 @app.route("/email", methods=["GET", "POST"])
@@ -493,7 +521,12 @@ def email_attendees():
             if(event == None):
                 print("Event not found")
                 return redirect(url_for("index"))
-        response = email_handler.contact_attendees(recipients=recipients, subject_line=subject, body=body, is_html=True, event=_serialize_event(event))
+        response = email_handler.contact_attendees(
+            recipients=recipients, 
+            subject_line=subject, 
+            body=body, 
+            is_html=True, 
+            event=_serialize_event(event))
         status, message = _parse_response_data(response)
         return render_template("resultInfo.html", Title="Send Email", Header="Send Email Results", Status=status, Details=message, user_id=user_id)
     else:
