@@ -9,6 +9,7 @@ from sqlalchemy import select
 from zoneinfo import ZoneInfo
 import email_handler
 import check_in_handler
+import media_handler
 import requests
 import os
 import json
@@ -277,6 +278,14 @@ def create_event(user_id):
             attendence_restriction=attendance_restriction if attendance_restriction else None
         )
 
+        if 'cover_photo' in request.files:
+            file = request.files['cover_photo']
+            response = _parse_response_data(media_handler.upload_file(file, None))
+            response_data = response.json()
+            if "url_id" in response_data:
+                new_event.cover_photo_url_id = response_data["url_id"]
+                print(response_data["url_id"])
+
         # Save to DB
         with get_db() as db:
             add_to_db(db, new_event)
@@ -391,6 +400,14 @@ def update_event(user_id, event_id):
             event.event_description = event_description
             event.age_restriction = int(age_restriction) if age_restriction else None
             event.attendence_restriction = attendance_restriction if attendance_restriction else None
+            
+            if 'cover_photo' in request.files:
+                file = request.files.get('cover_photo')
+                response = media_handler.upload_file(file, event.cover_photo_url_id)
+                response_data = response.json()
+                if "url_id" in response_data:
+                    event.cover_photo_url_id = response_data["url_id"]
+                    print(response_data["url_id"])
 
             # Commit changes
             db.commit()

@@ -19,7 +19,7 @@
   </nav>
 </header>
 <body class="non-fixed">
-  <form action="/createEvent/{{ user_id }}" method="POST">
+  <form action="/createEvent/{{ user_id }}" method="POST" enctype="multipart/form-data">
     <label for="eventName" title="The name of your event">Event Name:</label>
     <input type="text" id="eventName" name="eventName" maxlength="255" required>
       
@@ -53,6 +53,12 @@
       <label for="public" title="If checked, attendees can see the names of other people attending">Public Attendee Info: 
       <input type="checkbox" id="public" name="public" checked> </label>
       
+      <div class="side_div">
+        <label for="cover_photo" class="side_label">Cover Photo:</label>
+        <label for="cover_photo" class="custom-file-upload side_text" id="cover_label" style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;">Upload Photo</label>
+        <input id="cover_photo" name="cover_photo" type="file" accept="image/*"/>
+      </div>
+
       <div class="side_div">
           <label for="age_restriction" title="Input minimum age allowed to attend your event, or leave blank" class="side_label">Age Restriction: </label>
           <input type="number" class="side_text" id="age_restriction" name="age_restriction">

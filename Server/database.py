@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
 from contextlib import contextmanager
@@ -30,6 +30,12 @@ engine = create_engine(
     DATABASE_URL, 
     connect_args={"check_same_thread": False}
 )
+
+# In case of table alteration
+'''
+with engine.connect() as conn:
+    conn.execute(text("ALTER TABLE event_logs ADD COLUMN cover_photo_url_id TEXT"))
+'''
 
 # Create session 
 SessionLocal = sessionmaker(

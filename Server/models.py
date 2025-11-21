@@ -31,7 +31,7 @@ class EventLog(Base):
     attendence_restriction = Column(Text, default=None)
 
     check_in_token = Column(Text)
-    
+    cover_photo_url_id = Column(String(12))
     
 
 
