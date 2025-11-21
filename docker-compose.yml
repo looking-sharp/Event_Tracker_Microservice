@@ -53,6 +53,7 @@ services:
     environment:
       FLASK_APP: app.py
       FLASK_ENV: development
+      DATABASE_URL: sqlite:////app_parent/data/media.db
     volumes:
       - ./Media_Management_Microservice/..:/app_parent
     networks:
