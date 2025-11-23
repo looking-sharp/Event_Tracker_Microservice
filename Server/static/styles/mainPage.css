@@ -43,10 +43,6 @@
   gap: 10px;
 }
 
-.reviews h1 {
-  grid-column: span 2;
-}
-
 .review {
   border: solid 2px black;
   padding: 10px;
@@ -57,4 +53,22 @@
 .stars {
   font-size: x-large;
   color: gold;
+}
+
+.review-btns {
+  display: inline-grid;
+  align-items: center;
+  grid-template-columns: auto auto;
+  gap: 20px;
+  justify-content: end;
+}
+
+.review-btns button {
+  margin: 0;
+  font-size: medium;
+  padding: 10px 0;
+}
+
+.review-btns form {
+  width: auto;
 }
