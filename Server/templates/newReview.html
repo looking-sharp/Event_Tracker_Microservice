@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>New Review</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/index.css') }}">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/form.css') }}">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/mainPage.css') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static',filename='favicon_io/apple-touch-icon.png')}}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static',filename='favicon_io/favicon-32x32.png')}}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static',filename='favicon_io/favicon-16x16.png')}}">
+  <link rel="manifest" href="{{ url_for('static',filename='favicon_io/site.webmanifest')}}">
+</head>
+<header>
+  <h1>New Review</h1>
+  <nav class="navlinks">
+    <a href='/'>Home</a>
+  </nav>
+</header>
+<body class="fixed-body">
+  <div class="review-form-container" style="margin: auto;">
+    <form class="review-form">
+        <label for="name" title="Your name (or leave blank)">Name:</label>
+        <input type="text" name="name" id="name">
+        <div class="rate">
+            <input type="radio" id="star5" name="rate" value="5" />
+            <label for="star5" title="5 stars">5 stars</label>
+            <input type="radio" id="star4" name="rate" value="4" />
+            <label for="star4" title="4 stars">4 stars</label>
+            <input type="radio" id="star3" name="rate" value="3" />
+            <label for="star3" title="3 stars">3 stars</label>
+            <input type="radio" id="star2" name="rate" value="2" />
+            <label for="star2" title="2 stars">2 stars</label>
+            <input type="radio" id="star1" name="rate" value="1" />
+            <label for="star1" title="1 star">1 star</label>
+        </div>
+
+        <label for="comment" title="Enter any comments you have" style="margin-top: 50px;">Comments:</label>
+        <textarea name="comment" id="comment" rows="5" cols="50" style="width: 96%;"></textarea>
+
+        <button type="submit">Submit Review</button>
+    </form>
+  </div>
+  <footer>
+    Website by Thomas Sharp
+  </footer>
+</body>
+</html>

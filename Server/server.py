@@ -28,6 +28,7 @@ PUB_CHECK_URL = os.getenv("PUB_CHECK_URL")
 PUB_MEDIA_URL = os.getenv("PUB_MEDIA_URL")
 TOKEN = ""
 
+
 """
 
 Helper Functions and Initilization
@@ -614,6 +615,23 @@ def create_form(user_id, event_id):
         response = check_in_handler.create_form(event_id=event_id, fields=fields_list)
         status, message = _parse_response_data(response)
         return render_template("resultInfo.html", Title="Send Email", Header="Send Email Results", Status=status, Details=message, user_id=user_id)
+
+
+"""
+
+Review Routes
+
+"""
+
+@app.route("/see-reviews", methods=["GET"])
+def see_reviews():
+    return render_template("reviews.html")
+
+@app.route("/review", methods=["GET", "POST"])
+def review():
+    if request.method == "GET":
+        return render_template("newReview.html")
+    return render_template("index.html")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
