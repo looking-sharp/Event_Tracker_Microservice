@@ -41,7 +41,7 @@ CORS(app, resources={
     }
 })
 
-def _get_user_validity() -> bool:
+def _get_user_validity() -> tuple:
     """ Function to check if the current user token is valid
         - Uses User Auth Mcroservice    
     
@@ -49,12 +49,12 @@ def _get_user_validity() -> bool:
             if the user's token is valid
     """
     if TOKEN == "":
-        return False
+        return False, None
     headers = { "Authorization": f"Bearer {TOKEN}" }
     response = requests.get(f"{USER_URL}/auth/verify", headers=headers)
     if(response.status_code != 200):
-        return False
-    return True
+        return False, None
+    return True, response.json()
 
 def _parse_date(date_str: str) -> datetime.date:
     """Convert 'YYYY-MM-DD' string to date object."""
@@ -228,15 +228,9 @@ def user_page(user_id):
     """ Brings a user to their dashboard and makes sure all
         their events are loaded in
     """
-    if TOKEN == "":
+    valid, data = _get_user_validity()
+    if not valid:
         return redirect(url_for("index"))
-    headers = { "Authorization": f"Bearer {TOKEN}" }
-    response = requests.get(f"{USER_URL}/auth/verify", headers=headers)
-    
-    if(response.status_code != 200):
-        return redirect(url_for("login"))
-    
-    data = response.json();
     
     with get_db() as db:
         events = db.execute(
@@ -264,7 +258,8 @@ def create_event(user_id):
     """ Brings uses to the create event form is GET, and adds
         the event based on the form information if POST to db
     """
-    if not _get_user_validity():
+    valid, _ = _get_user_validity()
+    if not valid:
         return redirect(url_for("index"))
 
     if request.method == "POST":
@@ -347,7 +342,8 @@ def delete_event_logic(event_id, user_id):
 @app.route("/delete_event/<event_id>/<user_id>", methods=["POST"])
 def delete_event(event_id, user_id):
     """ Route to delete an event """
-    if not _get_user_validity():
+    valid, _ = _get_user_validity()
+    if not valid:
         return redirect(url_for("index"))
     message, status = delete_event_logic(event_id, user_id)
     return render_template("resultInfo.html", Title="Deleted Event", Header="Delete Event Results", Status=status, Details=message, user_id=user_id)
@@ -359,15 +355,9 @@ def delete_account(user_id):
         - Uses User Auth Microservice
         - Uses Email Microservice
     """
-    if TOKEN == "":
+    valid, data = _get_user_validity()
+    if not valid:
         return redirect(url_for("index"))
-    headers = { "Authorization": f"Bearer {TOKEN}" }
-    response = requests.get(f"{USER_URL}/auth/verify", headers=headers)
-    
-    if(response.status_code != 200):
-        return redirect(url_for("index"))
-    
-    data = response.json();
     email = data["user"]["email"]
 
     email_handler.send_goodbye_email(email)
@@ -387,7 +377,8 @@ def update_event(user_id, event_id):
     """ Brings uses to the update event form is GET, and updates
         the event based on the form information if POST to db
     """
-    if not _get_user_validity():
+    valid, _ = _get_user_validity()
+    if not valid:
         return redirect(url_for("index"))
     
     if request.method == "POST":
@@ -493,15 +484,9 @@ def email_attendees():
         and sends the email to listed recipients if post
         - Uses Email Microservice
     """
-    if TOKEN == "":
+    valid, data = _get_user_validity()
+    if not valid:
         return redirect(url_for("index"))
-    headers = { "Authorization": f"Bearer {TOKEN}" }
-    response = requests.get(f"{USER_URL}/auth/verify", headers=headers)
-    
-    if(response.status_code != 200):
-        return redirect(url_for("login"))
-    
-    data = response.json();
     user_id = request.args.get("uid")
 
     if request.method == "POST":
@@ -544,15 +529,9 @@ def email_submissions(user_id, event_id):
         - Uses Email Microservice
         - Uses Event Check In Microservice
     """
-    if TOKEN == "":
+    valid, data = _get_user_validity()
+    if not valid:
         return redirect(url_for("index"))
-    headers = { "Authorization": f"Bearer {TOKEN}" }
-    response = requests.get(f"{USER_URL}/auth/verify", headers=headers)
-    
-    if(response.status_code != 200):
-        return redirect(url_for("login"))
-    
-    data = response.json();
     with get_db() as db:
         e = db.query(EventLog).filter_by(id=event_id).first()
         if not e:
@@ -570,7 +549,8 @@ def create_form(user_id, event_id):
         the fields to create a check in form if POST
         - Uses Event Check In Microservice
     """
-    if not _get_user_validity():
+    valid, _ = _get_user_validity()
+    if not valid:
         return redirect(url_for("index"))
     with get_db() as db:
         e = db.query(EventLog).filter_by(id=event_id).first()

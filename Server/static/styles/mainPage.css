@@ -1,8 +1,9 @@
 
 .homepage-links {
-  display: contents;
-  gap: 20px;
+  display: flex;
+  gap: 10px;
   flex-direction: column;
+  margin: 50px 0;
 }
 
 .homepage-links form button {
@@ -34,4 +35,26 @@
 
 .drop-button {
   font-size: large;
+}
+
+.reviews {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 10px;
+}
+
+.reviews h1 {
+  grid-column: span 2;
+}
+
+.review {
+  border: solid 2px black;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 3px 3px 5px #888;
+}
+
+.stars {
+  font-size: x-large;
+  color: gold;
 }
