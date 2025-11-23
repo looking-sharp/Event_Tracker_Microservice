@@ -28,6 +28,13 @@ PUB_CHECK_URL = os.getenv("PUB_CHECK_URL")
 PUB_MEDIA_URL = os.getenv("PUB_MEDIA_URL")
 TOKEN = ""
 
+"""
+
+Helper Functions and Initilization
+
+"""
+
+
 def create_event_id(length: int = 12) -> str:
     """Create short for URL"""
     return secrets.token_urlsafe(length)[:length]
@@ -123,6 +130,35 @@ def _parse_response_data(response) -> tuple:
         except Exception:
             message = response.get_data(as_text=True) or message
     return status, message
+
+def delete_event_logic(event_id, user_id):
+    """ Helper function to delete an event from the database
+        - Uses Email Microservice
+        - Uses Event Check In Microservice
+    """
+    try:
+        with get_db() as db:
+            event = db.query(EventLog).filter(EventLog.id == event_id,EventLog.user_id == user_id).first()
+            if not event:
+                return "event not found", 400
+            responders = [r["email"] for r in event.rsvps]
+            if responders:
+                email_handler.send_cancel_email(recipients=responders, event=_serialize_event(event))
+            print(f"deleting event: {event.id} - {event.event_name}")
+            requests.post(f'{CHECK_URL}/delete-form?formID="{event.check_in_token}"')
+            db.delete(event)
+            db.commit()
+            return "event deleted", 200
+    except Exception as e:
+        print("ERROR:" + str(e))
+        return "deletion failed", 400
+
+"""
+
+Backend Helper routes and User Creation / Login
+
+"""
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -223,6 +259,37 @@ def signout():
         TOKEN = ""
     return redirect(url_for("index"))
 
+@app.route("/delete_account/<user_id>", methods=["POST"])
+def delete_account(user_id):
+    """ Route to delete a users account and
+        recursively delete all their events
+        - Uses User Auth Microservice
+        - Uses Email Microservice
+    """
+    valid, data = _get_user_validity()
+    if not valid:
+        return redirect(url_for("index"))
+    email = data["user"]["email"]
+
+    email_handler.send_goodbye_email(email)
+    with get_db() as db:
+        events = db.query(EventLog).filter_by(user_id=user_id).all()
+        for event in events:
+            delete_event_logic(event.id, user_id)
+        
+        headers = { "Authorization": f"Bearer {TOKEN}" }
+        response = requests.post(f"{USER_URL}/auth/delete-account", headers=headers)
+        status, message = _parse_response_data(response)
+
+        return render_template("resultInfo.html", Title="Deleted Account", Header="Delete Account Results", Status=status, Details=message, user_id=-1)
+
+"""
+
+User Dashboard Route
+
+"""
+
+
 @app.route("/userHome/<user_id>")
 def user_page(user_id):
     """ Brings a user to their dashboard and makes sure all
@@ -252,6 +319,29 @@ def user_page(user_id):
             events=events,
             num_events=len(events)
         )
+
+
+"""
+
+Event Routes
+
+"""
+
+@app.route("/getEvent")
+def get_event():
+    """ Route to grab an event from database """
+    event_id = request.args.get("event_id", "").strip()
+    with get_db() as db:
+        event = db.query(EventLog).filter(EventLog.id == event_id).first()
+        if event:
+            print("Found data")
+            data = {
+                "exists": True,
+                "event": _serialize_event(event)
+            }
+            return jsonify(data)
+        return jsonify({"exists":False, "event": None})    
+    return jsonify({"exists":False, "event": None})
 
 @app.route("/createEvent/<user_id>", methods=["GET", "POST"])
 def create_event(user_id):
@@ -317,61 +407,6 @@ def create_event(user_id):
     # GET request
     return render_template("newEvent.html", user_id=user_id)
 
-def delete_event_logic(event_id, user_id):
-    """ Helper function to delete an event from the database
-        - Uses Email Microservice
-        - Uses Event Check In Microservice
-    """
-    try:
-        with get_db() as db:
-            event = db.query(EventLog).filter(EventLog.id == event_id,EventLog.user_id == user_id).first()
-            if not event:
-                return "event not found", 400
-            responders = [r["email"] for r in event.rsvps]
-            if responders:
-                email_handler.send_cancel_email(recipients=responders, event=_serialize_event(event))
-            print(f"deleting event: {event.id} - {event.event_name}")
-            requests.post(f'{CHECK_URL}/delete-form?formID="{event.check_in_token}"')
-            db.delete(event)
-            db.commit()
-            return "event deleted", 200
-    except Exception as e:
-        print("ERROR:" + str(e))
-        return "deletion failed", 400
-
-@app.route("/delete_event/<event_id>/<user_id>", methods=["POST"])
-def delete_event(event_id, user_id):
-    """ Route to delete an event """
-    valid, _ = _get_user_validity()
-    if not valid:
-        return redirect(url_for("index"))
-    message, status = delete_event_logic(event_id, user_id)
-    return render_template("resultInfo.html", Title="Deleted Event", Header="Delete Event Results", Status=status, Details=message, user_id=user_id)
-
-@app.route("/delete_account/<user_id>", methods=["POST"])
-def delete_account(user_id):
-    """ Route to delete a users account and
-        recursively delete all their events
-        - Uses User Auth Microservice
-        - Uses Email Microservice
-    """
-    valid, data = _get_user_validity()
-    if not valid:
-        return redirect(url_for("index"))
-    email = data["user"]["email"]
-
-    email_handler.send_goodbye_email(email)
-    with get_db() as db:
-        events = db.query(EventLog).filter_by(user_id=user_id).all()
-        for event in events:
-            delete_event_logic(event.id, user_id)
-        
-        headers = { "Authorization": f"Bearer {TOKEN}" }
-        response = requests.post(f"{USER_URL}/auth/delete-account", headers=headers)
-        status, message = _parse_response_data(response)
-
-        return render_template("resultInfo.html", Title="Deleted Account", Header="Delete Account Results", Status=status, Details=message, user_id=-1)
-
 @app.route("/updateEvent/<user_id>/<event_id>", methods=["GET", "POST"])
 def update_event(user_id, event_id):
     """ Brings uses to the update event form is GET, and updates
@@ -433,21 +468,22 @@ def update_event(user_id, event_id):
     # GET request: show prefilled form
     return render_template("updateEvent.html", user_id=user_id, event_id=event_id)
 
-@app.route("/getEvent")
-def get_event():
-    """ Route to grab an event from database """
-    event_id = request.args.get("event_id", "").strip()
-    with get_db() as db:
-        event = db.query(EventLog).filter(EventLog.id == event_id).first()
-        if event:
-            print("Found data")
-            data = {
-                "exists": True,
-                "event": _serialize_event(event)
-            }
-            return jsonify(data)
-        return jsonify({"exists":False, "event": None})    
-    return jsonify({"exists":False, "event": None})
+@app.route("/delete_event/<event_id>/<user_id>", methods=["POST"])
+def delete_event(event_id, user_id):
+    """ Route to delete an event """
+    valid, _ = _get_user_validity()
+    if not valid:
+        return redirect(url_for("index"))
+    message, status = delete_event_logic(event_id, user_id)
+    return render_template("resultInfo.html", Title="Deleted Event", Header="Delete Event Results", Status=status, Details=message, user_id=user_id)
+
+
+"""
+
+RSVP Routes
+
+"""
+
 
 @app.route("/rsvp/<event_id>", methods=["GET", "POST"])
 def rsvp(event_id):
@@ -476,6 +512,13 @@ def rsvp(event_id):
         if e.cover_photo_url_id is not None:
             cover_photo_link = f"{PUB_MEDIA_URL}/access/{e.cover_photo_url_id}"
         return render_template("rsvpForm.html", event=e, cover_photo_link = cover_photo_link)
+
+
+"""
+
+Email Routes
+
+"""
 
 
 @app.route("/email", methods=["GET", "POST"])
@@ -542,6 +585,12 @@ def email_submissions(user_id, event_id):
         status, message = _parse_response_data(email_results)
         return render_template("resultInfo.html", Title="Send Email", Header="Send Email Results", Status=status, Details=message, user_id=user_id)
 
+
+"""
+
+Check In Routes
+
+"""
 
 @app.route("/create-check-in-form/<user_id>/<event_id>", methods=["GET", "POST"])
 def create_form(user_id, event_id):
