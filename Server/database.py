@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
 from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
 import os
 
 from models import Base, EventLog  # Import from models.py

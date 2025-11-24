@@ -1,7 +1,7 @@
 from dotenv import load_dotenv # type: ignore
 from flask import Flask, request, redirect, url_for, render_template, jsonify # type: ignore
 from flask.wrappers import Response as FlaskResponse
-from datetime import datetime, time, date
+from datetime import datetime, time, date, timezone, timedelta
 from flask_cors import CORS
 from database import init_db, get_db, add_to_db, event_id_exists
 from models import EventLog
@@ -12,6 +12,8 @@ import check_in_handler
 import media_handler
 import review_handler
 import requests
+import time as time_module
+import threading
 import os
 import json
 import secrets
@@ -28,7 +30,6 @@ REVIEW_URL = os.getenv("REVIEW_AND_FEEDBACK_MICROSERVICE_URL")
 PUB_CHECK_URL = os.getenv("PUB_CHECK_URL")
 PUB_MEDIA_URL = os.getenv("PUB_MEDIA_URL")
 TOKEN = ""
-
 
 """
 
@@ -137,6 +138,7 @@ def delete_event_logic(event_id, user_id):
     """ Helper function to delete an event from the database
         - Uses Email Microservice
         - Uses Event Check In Microservice
+        - Uses Media Management Microservice
     """
     try:
         with get_db() as db:
@@ -148,12 +150,50 @@ def delete_event_logic(event_id, user_id):
                 email_handler.send_cancel_email(recipients=responders, event=_serialize_event(event))
             print(f"deleting event: {event.id} - {event.event_name}")
             requests.post(f'{CHECK_URL}/delete-form?formID="{event.check_in_token}"')
+            requests.post(f"{MEDIA_URL}/delete/{event.cover_photo_url_id}")
             db.delete(event)
             db.commit()
             return "event deleted", 200
     except Exception as e:
         print("ERROR:" + str(e))
         return "deletion failed", 400
+
+
+"""
+
+Threading and purge logic
+
+"""
+
+PURGE_DAYS = 7
+CHECK_INTERVAL_SECONDS = 60
+def purge_logs() -> int:
+    returned = 0
+    with get_db() as db:
+        logs = db.query(EventLog).all()
+
+        for log in logs:
+            combined_dt = datetime.combine(log.event_date, log.end_time)
+            combined_dt = combined_dt.replace(tzinfo=timezone.utc)
+            expires_at = combined_dt + timedelta(days=PURGE_DAYS)
+            if expires_at < datetime.now(timezone.utc):
+                delete_event_logic(log.id, log.user_id)
+                returned = returned + 1
+        db.commit()
+    return returned
+        
+def purge_database():
+    while True:
+        deleted = purge_logs()
+        print(f"[scheduler] now={datetime.now(timezone.utc).isoformat()} deleted={deleted}")
+        time_module.sleep(CHECK_INTERVAL_SECONDS)
+
+def start_scheduler():
+    """Start a background thread that stops when the app stops."""
+    t = threading.Thread(target=purge_database, daemon=True)
+    t.start()
+    print("Check in purge started")
+
 
 """
 
@@ -392,7 +432,7 @@ def create_event(user_id):
         if 'cover_photo' in request.files:
             file = request.files['cover_photo']
             if file and file.filename:
-                response = _parse_response_data(media_handler.upload_file(file, None))
+                response = media_handler.upload_file(file, None)
                 response_data = response.json()
                 if "url_id" in response_data:
                     new_event.cover_photo_url_id = response_data["url_id"]
@@ -462,7 +502,6 @@ def update_event(user_id, event_id):
                     if "url_id" in response_data:
                         event.cover_photo_url_id = response_data["url_id"]
                         print(response_data["url_id"])
-
             # Commit changes
             db.commit()
         
@@ -654,4 +693,5 @@ def review():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
     init_db()
+    start_scheduler()
     app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
