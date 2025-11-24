@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 import email_handler
 import check_in_handler
 import media_handler
+import review_handler
 import requests
 import os
 import json
@@ -164,7 +165,8 @@ Backend Helper routes and User Creation / Login
 @app.route("/", methods=["GET", "POST"])
 def index():
     """ Home page """
-    return render_template("index.html")
+    reviews = review_handler.get_reviews(0, 4, "asc")
+    return render_template("index.html", reviews=reviews)
 
 @app.route("/check-microservices", methods=["GET"])
 def checkMicroservices():
@@ -623,6 +625,17 @@ Review Routes
 
 """
 
+@app.route("/get-reviews", methods=["GET"])
+def get_reviews():
+    start = int(request.args.get("start"))
+    end = int(request.args.get("end"))
+    if start is None or end is None:
+        return jsonify({"message": "start or end not valid"}), 400
+    response = review_handler.get_reviews(start=start, end=end)
+    if "result" in response:
+        return jsonify({"result": review_handler.get_reviews(start=start, end=end)}), 200
+    return response
+
 @app.route("/see-reviews", methods=["GET"])
 def see_reviews():
     return render_template("reviews.html")
@@ -631,7 +644,12 @@ def see_reviews():
 def review():
     if request.method == "GET":
         return render_template("newReview.html")
-    return render_template("index.html")
+    name = request.form.get("name")
+    rating = int(request.form.get("rate"))
+    comment = request.form.get("comment")
+    response = review_handler.submit_review(name=name, rating=rating, comment=comment)
+    status, message = _parse_response_data(response)
+    return render_template("resultInfo.html", Title="Submit Review", Header="Submit Review Results", Status=status, Details=message, user_id=-1)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))

@@ -19,6 +19,11 @@
     <a href="/userHome/{{ user_id }}">Dashboard</a>
     <a href='/signout'>Sign Out</a>
   </nav>
+  {% else %}
+  <nav class="navlinks">
+    <a href='/signUp'>Sign Up</a>
+    <a href='/'>Home</a>
+  </nav>
   {% endif %}
 </header>
   <div class=".fixed" style="display: grid; margin: auto;">

@@ -45,25 +45,12 @@
         <button class="drop-button">Create Review</button>
       </form>
     </div>
-    <div class="review">
-      <span class="stars">★★★★★</span>
-      <p class="comment">Amazing product! Exceeded my expectations.</p>
-    </div>
-
-    <div class="review">      
-      <span class="stars">★★★★☆</span>
-      <p class="comment">Really good, but could use a minor improvement.</p>
-    </div>
-
-    <div class="review">
-      <span class="stars">★★★☆☆</span>
-      <p class="comment">Average experience. Nothing special.</p>
-    </div>
-
-    <div class="review">
-      <span class="stars">★★☆☆☆</span>
-      <p class="comment">Not very satisfied, expected better quality.</p>
-    </div>
+    {% for review in reviews %}
+      <div class="review">
+        <p><span>{{ review["userId"] }} -- </span><span class="stars active">{{"★" * review["rating"]}}</span><span class="stars non-active">{{"★" * (5- review["rating"])}}</span></p>
+        <p class="comment">{{review["comment"]}}</p>
+      </div>
+    {% endfor %}
   </div>
   <footer>
     Website by Thomas Sharp

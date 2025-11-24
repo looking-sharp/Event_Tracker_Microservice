@@ -19,30 +19,23 @@
   </nav>
 </header>
 <body class="fixed-body">
-  <div class="reviews">
+  <div class="reviews" id="reviews" style="display: none; margin:auto 0">
     <h2 style="grid-column: span 2;">Reviews:</h2>
-    <div class="review">
-      <span class="stars">★★★★★</span>
-      <p class="comment">Amazing product! Exceeded my expectations.</p>
-    </div>
 
-    <div class="review">      
-      <span class="stars">★★★★☆</span>
-      <p class="comment">Really good, but could use a minor improvement.</p>
+    <div id="pages" class="pages">
+      <span class="arrow left" id="arrow-left"><</span>  
+      <span class="pageNum" id="page-num">1</span>
+      <span class="arrow right" id="arrow-right">></span>
     </div>
+  </div>
 
-    <div class="review">
-      <span class="stars">★★★☆☆</span>
-      <p class="comment">Average experience. Nothing special.</p>
-    </div>
-
-    <div class="review">
-      <span class="stars">★★☆☆☆</span>
-      <p class="comment">Not very satisfied, expected better quality.</p>
-    </div>
+  <div id="loading" class=".fixed" style="display: grid;">
+    <p>Fetching Reviews</p>
+    <svg fill="rgb(4, 170, 109)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z"><animateTransform attributeName="transform" type="rotate" dur="0.75s" values="0 12 12;360 12 12" repeatCount="indefinite"/></path></svg>
   </div>
   <footer>
     Website by Thomas Sharp
   </footer>
+  <script src="{{ url_for('static',filename='scripts/reviews.js') }}"></script>
 </body>
 </html>

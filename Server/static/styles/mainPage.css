@@ -39,7 +39,7 @@
 
 .reviews {
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
@@ -50,9 +50,27 @@
   box-shadow: 3px 3px 5px #888;
 }
 
-.stars {
+.review p {
+  margin: 0;
+}
+
+.review .comment {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.review span {
+  font-size: large;
+}
+
+.stars.active {
   font-size: x-large;
-  color: gold;
+  color: #ffc700;
+}
+
+.stars.non-active {
+  font-size: x-large;
+  color: #ccc;
 }
 
 .review-btns {
@@ -120,4 +138,26 @@
 
 .rate label {
   padding: 0;
+}
+
+.pages {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-column: span 2;
+  justify-items: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.pages span {
+  font-size: large;
+  font-weight: bold;
+  cursor: default;
+}
+
+.pages .arrow {
+  font-size: x-large;
+  margin: 0;
+  padding: 0 5px;
+  cursor: pointer;
 }
